@@ -38,6 +38,7 @@ class GenderTest extends TestCase
         );
         $gender->refresh();
 
+        $this->assertEquals(36,strlen($gender->id));
         $this->assertEquals('test1', $gender->name);
         $this->assertNull($gender->description);
         $this->assertTrue($gender->is_active);
@@ -88,5 +89,12 @@ class GenderTest extends TestCase
         factory(Gender::class, 2)->create();
         Gender::destroy(Gender::all()->first()->getAttributes());
         $this->assertCount(1, Gender::all());
+
+        $gender = factory(Gender::class)->create();
+        $gender->delete();
+        $this->assertNull(Gender::find($gender->id));
+
+        $gender->restore();
+        $this->assertNotNull(Gender::find($gender->id));
     }
 }
