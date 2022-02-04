@@ -21,8 +21,23 @@ jobs:
       - name: Run a one-line script
         run: docker-compose up -d
 
-      # Runs a set of commands using the runners shell
-#       - name: Run a multi-line script
-#         run: |
-#           echo Add other actions to build,
-#           echo test, and deploy your project.
+      - name: "Chown in /var/www"
+        run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
+
+      - name: "Rodando composer"
+        run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
+
+      - name: "Copiando backend .env"
+        run: docker exec -t micro-videos-app cp .env.example /var/www/.env
+
+      - name: "Copiando backend .env.testing"
+        run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
+
+      - name: "Rodando key:generate"
+        run: docker exec -t micro-videos-app php /var/www/artisan key:generate
+
+      - name: "Rodando migrations"
+        run: docker exec -t micro-videos-app php /var/www/artisan migrate
+
+      - name: "Rodando Phpunit"
+        run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
