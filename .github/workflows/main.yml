@@ -36,8 +36,10 @@ jobs:
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
         
-      - name: "Limpando cache de config"
-        run: docker exec -t micro-videos-app php /var/www/artisan config:clear
+      - name: Run tests
+        run: ./vendor/bin/phpunit -v
+        env:
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         
       - name: "verificando conexão mysql"
         run:  docker exec -t micro-videos-db mysql --host 127.0.0.1 --port 3306 -uroot -proot -e "SHOW DATABASES"    
