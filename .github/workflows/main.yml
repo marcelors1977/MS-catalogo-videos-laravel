@@ -36,10 +36,11 @@ jobs:
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
 
+      - name: "Setando hosts"
+        run: echo "127.0.0.1 mysql" > /etc/hosts
+
       - name: "Rodando migrations"
         run: docker exec -t micro-videos-app php /var/www/artisan migrate
-        env: 
-          DB_HOST: 127.0.0.1
 
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
