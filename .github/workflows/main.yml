@@ -35,9 +35,11 @@ jobs:
 
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
-
-      - name: "Setando hosts"
-        run: echo "127.0.0.1 mysql" > /etc/hosts
+        
+      - name: "verificando conexão mysql"
+        run: |
+          mysql --version
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -uuser -psecret -e "SHOW DATABASES"    
 
       - name: "Rodando migrations"
         run: docker exec -t micro-videos-app php /var/www/artisan migrate
