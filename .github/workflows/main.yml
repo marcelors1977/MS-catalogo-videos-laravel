@@ -18,7 +18,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Run a one-line script
+      - name: "Iniciando os containeres"
         run: docker-compose up -d
 
       - name: "Chown in /var/www"
@@ -35,6 +35,9 @@ jobs:
 
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
+        
+      - name: "Limpando cache de config"
+        run: docker exec -t micro-videos-app php /var/www/artisan config:clear
         
       - name: "verificando conexão mysql"
         run: |
