@@ -18,14 +18,17 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # - name: "Iniciando os containeres"
+      #   run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
+
       - name: "Iniciando os containeres"
-        run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
+        run: docker-compose -f docker-compose.prod.yml up -d db 
 
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
 
-      - name: "Chown in /var/www"
-        run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
+      # - name: "Chown in /var/www"
+      #   run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
 
       - name: "teste mysql no ar"
         run: docker exec -t micro-videos-db /etc/init.d/mysql status
@@ -33,28 +36,28 @@ jobs:
       - name: "Teste MySql do container MySql"
         run: docker exec -t micro-videos-db mysql -uroot -proot -e "SHOW DATABASES"
 
-      - name: "Teste MySql do container app"
-        run: docker exec -t micro-videos-app mysql --host 127.0.0.1 --port 3306 -uroot -proot -e "SHOW DATABASES"
+      # - name: "Teste MySql do container app"
+      #   run: docker exec -t micro-videos-app mysql --host 127.0.0.1 --port 3306 -uroot -proot -e "SHOW DATABASES"
 
-      - name: "Rodando composer"
-        run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
+      # - name: "Rodando composer"
+      #   run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 
-      - name: "Copiando backend .env"
-        run: docker exec -t micro-videos-app cp .env.example /var/www/.env
+      # - name: "Copiando backend .env"
+      #   run: docker exec -t micro-videos-app cp .env.example /var/www/.env
 
-      - name: "Copiando backend .env.testing"
-        run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
+      # - name: "Copiando backend .env.testing"
+      #   run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
 
-      # - name: "Aguardando o php-fpm"
-      #   run: docker-compose -f docker-compose.prod.yml up dockerize
-      - name: "Rodando clear cache"
-        run: docker exec -t micro-videos-app php /var/www/artisan config:clear
+      # # - name: "Aguardando o php-fpm"
+      # #   run: docker-compose -f docker-compose.prod.yml up dockerize
+      # - name: "Rodando clear cache"
+      #   run: docker exec -t micro-videos-app php /var/www/artisan config:clear
 
-      - name: "Rodando key:generate"
-        run: docker exec -t micro-videos-app php /var/www/artisan key:generate
+      # - name: "Rodando key:generate"
+      #   run: docker exec -t micro-videos-app php /var/www/artisan key:generate
         
-      - name: "Rodando migrations"
-        run: docker exec -t micro-videos-app php /var/www/artisan migrate
+      # - name: "Rodando migrations"
+      #   run: docker exec -t micro-videos-app php /var/www/artisan migrate
 
-      - name: "Rodando Phpunit"
-        run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
+      # - name: "Rodando Phpunit"
+      #   run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
