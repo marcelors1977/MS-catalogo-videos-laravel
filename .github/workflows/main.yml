@@ -32,6 +32,9 @@ jobs:
 
       # - name: "teste mysql no ar"
       #   run: docker exec -t micro-videos-db /etc/init.d/mysql status
+      
+      - name: "Aguardando o php-fpm"
+        run: docker-compose -f docker-compose.prod.yml up dockerize
 
       - name: "Teste MySql do container MySql"
         run: docker exec -t micro-videos-db mysql -uroot -proot -e "SHOW DATABASES"
