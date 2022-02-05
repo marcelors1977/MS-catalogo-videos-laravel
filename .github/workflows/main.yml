@@ -24,8 +24,8 @@ jobs:
       - name: "Iniciando os containeres"
         run: docker-compose -f docker-compose.prod.yml up -d db 
 
-      - name: "Chown in /var/www"
-        run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
+#       - name: "Chown in /var/www"
+#         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
 
       # - name: "Chown in /var/www"
       #   run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
