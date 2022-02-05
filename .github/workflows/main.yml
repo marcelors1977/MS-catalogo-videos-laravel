@@ -27,6 +27,9 @@ jobs:
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
 
+      - name: "Teste MySql"
+        run: docker exec -t micro-videos-app mysql --host db --port 3306 -uroot -proot -e "SHOW DATABASES"
+
       - name: "Rodando composer"
         run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 
