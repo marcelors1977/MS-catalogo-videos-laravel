@@ -1,6 +1,5 @@
+ARG USER=www-data
 FROM php:7.3.6-fpm-alpine3.9
-
-ARG USER www-data
 
 RUN apk add --no-cache shadow openssl bash mysql-client nodejs npm git
 RUN docker-php-ext-install pdo pdo_mysql
