@@ -27,6 +27,9 @@ jobs:
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
 
+      - name: "Restart mysql no ar"
+        run: docker exec -t micro-videos-db /etc/init.d/mysql restart
+
       - name: "teste mysql no ar"
         run: docker exec -t micro-videos-db /etc/init.d/mysql status
 
