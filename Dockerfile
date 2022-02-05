@@ -1,4 +1,3 @@
-ARG USER=www-data
 FROM php:7.3.6-fpm-alpine3.9
 
 RUN apk add --no-cache shadow openssl bash mysql-client nodejs npm git
@@ -19,6 +18,6 @@ WORKDIR /var/www
 
 RUN rm -rf /var/www/html && ln -s public html
 
-USER root
+USER www-data
 
 EXPOSE 9000

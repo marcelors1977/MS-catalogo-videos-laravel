@@ -21,11 +21,11 @@ jobs:
       - name: "Iniciando os containeres"
         run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
 
-      - name: "Aguardando o php-fpm"
-        run: docker-compose -f docker-compose.prod.yml up dockerize
-
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
+
+      - name: "Chown in /var/www"
+        run: docker exec -u root -t micro-videos-db chown -R www-data:www-data /var/lib/mysql
 
       - name: "Rodando composer"
         run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
@@ -35,6 +35,9 @@ jobs:
 
       - name: "Copiando backend .env.testing"
         run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
+
+      # - name: "Aguardando o php-fpm"
+      #   run: docker-compose -f docker-compose.prod.yml up dockerize
 
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
