@@ -19,6 +19,6 @@ WORKDIR /var/www
 
 RUN rm -rf /var/www/html && ln -s public html
 
-USER $USER
+USER ${USER}
 
 EXPOSE 9000
