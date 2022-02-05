@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: "Iniciando os containeres"
-        run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
+        run: docker-compose -f docker-compose.prod.yml up app db redis nginx
 
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
