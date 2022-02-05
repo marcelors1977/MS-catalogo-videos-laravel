@@ -51,6 +51,10 @@ services:
         networks:
             - app-network
 
+    dockerize:
+        image: jwilder/dockerize
+        entrypoint: dockerize -wait tcp://nginx:80 -timeout 120s
+
 networks:
     app-network:
         name: custom_frontend
