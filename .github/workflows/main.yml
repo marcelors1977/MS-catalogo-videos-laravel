@@ -18,10 +18,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # - name: "Iniciando os containeres"
-      #   run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
       - name: "Iniciando os containeres"
-        run: docker-compose -f docker-compose.prod.yml up db
+        run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
 
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
