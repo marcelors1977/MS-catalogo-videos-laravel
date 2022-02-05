@@ -38,6 +38,8 @@ jobs:
 
       # - name: "Aguardando o php-fpm"
       #   run: docker-compose -f docker-compose.prod.yml up dockerize
+      - name: "Rodando clear cache"
+        run: docker exec -t micro-videos-app php /var/www/artisan config:clear
 
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/artisan key:generate
