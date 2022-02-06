@@ -5,7 +5,7 @@ services:
     app:
         build:
             context: .
-            dockerfile: Dockerfile.prod
+            dockerfile: Dockerfile
         container_name: micro-videos-app
         entrypoint: ./.docker/entrypoint.sh
         volumes:

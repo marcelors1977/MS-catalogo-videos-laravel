@@ -30,8 +30,8 @@ jobs:
       # - name: "Rodando composer"
       #   run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 
-      # - name: "Copiando backend .env"
-      #   run: docker exec -t micro-videos-app cp .env.example /var/www/.env
+      - name: "Copiando backend .env"
+        run: docker exec -t micro-videos-app cp .env.example /var/www/.env
 
       # - name: "Copiando backend .env.testing"
       #   run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
