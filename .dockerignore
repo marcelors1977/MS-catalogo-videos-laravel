@@ -2,7 +2,6 @@
 .vscode/
 .docker/dbdata/
 .vendor/
-.docker/entrypoint.sh
 .env
 .env.example
 .env.testing
