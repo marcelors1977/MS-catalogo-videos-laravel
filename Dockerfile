@@ -14,8 +14,9 @@ COPY . /var/www
 RUN usermod -u 1000 www-data
 
 RUN composer install && \
-    php artisan config:cache && \
-    chmod -R 777 storage
+    php artisan config:cache 
+    # && \
+    # chmod -R 777 storage
 
 RUN rm -rf /var/www/html && ln -s public html
 
