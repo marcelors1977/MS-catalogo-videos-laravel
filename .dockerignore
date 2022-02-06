@@ -1,0 +1,15 @@
+.github/
+.vscode/
+.docker/dbdata/
+.vendor/
+.docker/entrypoint.sh
+.env
+.env.example
+.env.testing
+.env.testing.example
+.gitignore
+docker-compose.prod.yml
+docker-compose.yml
+Notas_Aulas
+descarte/
+.phpunit.result.cache
