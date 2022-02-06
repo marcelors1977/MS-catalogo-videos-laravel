@@ -54,6 +54,8 @@ services:
     dockerize:
         image: jwilder/dockerize
         entrypoint: dockerize -wait tcp://db:33306 -timeout 30s
+        networks:
+            - app-network
 
 networks:
     app-network:
