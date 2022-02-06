@@ -18,8 +18,8 @@ jobs:
       - name: "Iniciando os containeres"
         run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
 
-      # - name: "Chown in /var/www"
-      #   run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
+      - name: "Chown in /var/www"
+        run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
      
       - name: "Aguardando o DB"
         run: docker-compose -f docker-compose.prod.yml up dockerize
@@ -30,8 +30,8 @@ jobs:
       # - name: "Rodando composer"
       #   run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 
-      - name: "Copiando backend .env"
-        run: docker exec -t micro-videos-app cp .env.example /var/www/.env
+      # - name: "Copiando backend .env"
+      #   run: docker exec -t micro-videos-app cp .env.example /var/www/.env
 
       # - name: "Copiando backend .env.testing"
       #   run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
