@@ -8,6 +8,8 @@ use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
+use function PHPSTORM_META\type;
+
 class CastMemberControllerTest extends TestCase
 {
     use DatabaseMigrations, TestValidations, TestSaves;
@@ -61,8 +63,8 @@ class CastMemberControllerTest extends TestCase
     public function testStore()
     {
         $data = [
-            'name' => 'test_cast',
-            'type' => '2'
+            'name' => 'test_cast_store',
+            'type' =>  CastMember::TYPE_ACTOR 
         ];
         $response = $this->assertStore($data, $data + [ 'deleted_at' => null]);
         $response->assertJsonStructure([
@@ -72,13 +74,11 @@ class CastMemberControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->castMember = factory(CastMember::class)->create([
-            'type' => '1'
-        ]);
+        $this->castMember->type = CastMember::TYPE_DIRECTOR;
 
         $data = [
-            'name' => 'test_updated',
-            'type' => '2'
+            'name' => 'test_cast_updated',
+            'type' => CastMember::TYPE_ACTOR
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
         $response->assertJsonStructure([
@@ -98,7 +98,6 @@ class CastMemberControllerTest extends TestCase
         
         $response = $this->get(route('cast_members.index'));
         $response->assertJson([$this->castMember->toArray()]);
-
     }
 
     protected function routeStore(){
