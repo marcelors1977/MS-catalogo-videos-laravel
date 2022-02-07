@@ -8,6 +8,6 @@ use Faker\Generator as Faker;
 $factory->define(CastMember::class, function (Faker $faker) {
     return [
         'name' => $faker->name,
-        'type' => CastMember::TYPE_ARRAY_CAST[array_rand([CastMember::TYPE_DIRECTOR, CastMember::TYPE_ACTOR],1)]
+        'type' => CastMember::TYPE_ARRAY_CAST[array_rand(CastMember::TYPE_ARRAY_CAST,1)]
     ];
 });
