@@ -34,4 +34,4 @@ $ docker-compose up -d
 
   - Os atributos de categoria são "name", "description" e "is_active", onde "name" é obrigatório 
   - Os atributos de gênero são "name", e "is_active", onde "name" é obrigatório 
-  - Os atributos de cast são "name", e "type", onde "name" e "type" são obrigatórios e "type"
+  - Os atributos de cast são "name", e "type", onde "name" e "type" são obrigatórios e "type" 
