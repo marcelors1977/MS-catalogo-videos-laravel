@@ -27,20 +27,20 @@ jobs:
       - name: "Testando se MySql esta no ar"
         run: docker exec -t micro-videos-db mysql -uroot -proot -e "SHOW DATABASES"
 
-      # - name: "Rodando composer"
-      #   run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
+      - name: "Rodando composer"
+        run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 
-      # - name: "Copiando backend .env"
-      #   run: docker exec -t micro-videos-app cp .env.example /var/www/.env
+      - name: "Copiando backend .env"
+        run: docker exec -t micro-videos-app cp .env.example /var/www/.env
 
-      # - name: "Copiando backend .env.testing"
-      #   run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
+      - name: "Copiando backend .env.testing"
+        run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
 
-      # - name: "Rodando key:generate"
-      #   run: docker exec -t micro-videos-app php /var/www/artisan key:generate
+      - name: "Rodando key:generate"
+        run: docker exec -t micro-videos-app php /var/www/artisan key:generate
         
-      # - name: "Rodando migrations"
-      #   run: docker exec -t micro-videos-app php /var/www/artisan migrate
+      - name: "Rodando migrations"
+        run: docker exec -t micro-videos-app php /var/www/artisan migrate
 
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml

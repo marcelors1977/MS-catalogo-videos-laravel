@@ -11,11 +11,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 COPY . /var/www
 
-RUN usermod -u 1000 www-data
+RUN usermod -u 1000 www-data 
 
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www && \
+# RUN composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www && \
 # RUN composer install && \
-    php artisan config:cache 
+    # php artisan config:cache 
 #     # && \
 #     # chmod -R 777 storage
 
