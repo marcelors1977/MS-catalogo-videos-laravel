@@ -2,43 +2,46 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use App\Models\Gender;
+use App\Models\CastMember;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
-class GenderControllerTest extends TestCase
+class CastMemberControllerTest extends TestCase
 {
     use DatabaseMigrations, TestValidations, TestSaves;
 
-    private $gender;
+    private $castMember;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->gender = factory(Gender::class)->create();
+        $this->castMember = factory(CastMember::class)->create();
     }
 
     public function testIndex()
     {
-         $response = $this->get(route('genders.index'));
+        $response = $this->get(route('cast_members.index'));
 
         $response->assertStatus(200);
-        $response->assertJson([$this->gender->toArray()]);
+        $response->assertJson([$this->castMember->toArray()]);
     }
 
     public function testShow()
     {
-        $response = $this->get(route('genders.show', ['gender' => $this->gender->id]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $this->castMember->id]));
 
         $response->assertStatus(200);
-        $response->assertJson($this->gender->toArray());
+        $response->assertJson($this->castMember->toArray());
     }
 
     public function testInvalidationData()
     {
-        $data = [ 'name' => ''];
+        $data = [ 
+            'name' => '',
+            'type' => ''
+        ];
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
 
@@ -49,39 +52,33 @@ class GenderControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);
 
         $data = [
-            'is_active' => 'a'
+            'type' => '3'
         ];        
-        $this->assertInvalidationInStoreAction($data, 'boolean');
-        $this->assertInvalidationInUpdateAction($data, 'boolean');
+        $this->assertInvalidationInStoreAction($data, 'in');
+        $this->assertInvalidationInUpdateAction($data, 'in');
     }
 
     public function testStore()
     {
         $data = [
-            'name' => 'test'
+            'name' => 'test_cast',
+            'type' => '2'
         ];
-        $response = $this->assertStore($data, $data + ['is_active' => true, 'deleted_at' => null]);
+        $response = $this->assertStore($data, $data + [ 'deleted_at' => null]);
         $response->assertJsonStructure([
             'created_at', 'updated_at'
         ]);
-
-
-        $data = [
-            'name' => 'test',
-            'is_active' => false
-        ];
-        $response = $this->assertStore($data, $data + ['is_active' => false]);
     }
 
     public function testUpdate()
     {
-        $this->gender = factory(Gender::class)->create([
-            'is_active' => false
+        $this->castMember = factory(CastMember::class)->create([
+            'type' => '1'
         ]);
 
         $data = [
-            'name' => 'test',
-            'is_active' => true
+            'name' => 'test_updated',
+            'type' => '2'
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
         $response->assertJsonStructure([
@@ -91,29 +88,29 @@ class GenderControllerTest extends TestCase
 
     public function testDelete()
     {
-        $gender = factory(Gender::class)->create();
-        
-        $response = $this->json('DELETE',route('genders.destroy', ['gender' => $gender]));
+        $cast_member = factory(CastMember::class)->create();
+ 
+        $response = $this->json('DELETE',route('cast_members.destroy', ['cast_member' => $cast_member->id]));
         $response->assertNoContent(204);
 
-        $response = $this->get(route('genders.show', ['gender' => $gender]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $cast_member->id]));
         $response->assertNotFound();
         
-        $response = $this->get(route('genders.index'));
-        $response->assertJson([$this->gender->toArray()]);
+        $response = $this->get(route('cast_members.index'));
+        $response->assertJson([$this->castMember->toArray()]);
 
     }
 
     protected function routeStore(){
-        return route('genders.store');
+        return route('cast_members.store');
     }
 
     protected function routeUpdate(){
-        return route('genders.update', ['gender' => $this->gender->id]);
+        return route('cast_members.update', ['cast_member' => $this->castMember->id]);
     }
 
     protected function model(){
-        return Gender::class;
+        return CastMember::class;
     }
 }
 

@@ -2,45 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Gender;
-use Illuminate\Http\Request;
 
-class GenderController extends Controller
+class GenderController extends BasicCrudController
 {
     private $rules = [
         'name' => 'required|max:255',
         'is_active' => 'boolean'
     ];
 
-    public function index()
-    {
-        return \App\Models\Gender::all();
+    protected function model(){
+        return Gender::class;
     }
 
-    public function store(Request $request)
-    {
-        $this->validate($request,$this->rules);
-        $gender = Gender::create($request->all());
-        $gender->refresh();
-        return $gender;
+    protected function rulesStore(){
+        return $this->rules;
     }
-
-    public function show(Gender $gender)
-    {
-        return $gender;
-    }
-
-    public function update(Request $request, Gender $gender)
-    {
-        $this->validate($request, $this->rules );
-        $gender->update($request->all());
-        return $gender;
-    }
-
-    public function destroy(Gender $gender)
-    {
-        $gender->delete();
-        return \response()->noContent();
-    }
+    
+    protected function  rulesUpdate(){
+        return $this->rules;
+    }  
 }
