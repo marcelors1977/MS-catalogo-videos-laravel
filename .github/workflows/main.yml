@@ -36,11 +36,11 @@ jobs:
       # - name: "Copiando backend .env.testing"
       #   run: docker exec -t micro-videos-app cp .env.testing.example /var/www/.env.testing
 
-      # - name: "Rodando key:generate"
-      #   run: docker exec -t micro-videos-app php /var/www/artisan key:generate
+      - name: "Rodando key:generate"
+        run: docker exec -t micro-videos-app php /var/www/artisan key:generate
         
-      # - name: "Rodando migrations"
-      #   run: docker exec -t micro-videos-app php /var/www/artisan migrate
+      - name: "Rodando migrations"
+        run: docker exec -t micro-videos-app php /var/www/artisan migrate
 
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
