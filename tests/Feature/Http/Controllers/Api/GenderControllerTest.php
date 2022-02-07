@@ -58,7 +58,7 @@ class GenderControllerTest extends TestCase
     public function testStore()
     {
         $data = [
-            'name' => 'test'
+            'name' => 'test_gender_store'
         ];
         $response = $this->assertStore($data, $data + ['is_active' => true, 'deleted_at' => null]);
         $response->assertJsonStructure([
@@ -67,7 +67,7 @@ class GenderControllerTest extends TestCase
 
 
         $data = [
-            'name' => 'test',
+            'name' => 'test_gender_store',
             'is_active' => false
         ];
         $response = $this->assertStore($data, $data + ['is_active' => false]);
@@ -75,12 +75,10 @@ class GenderControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->gender = factory(Gender::class)->create([
-            'is_active' => false
-        ]);
+        $this->gender->is_active = false;
 
         $data = [
-            'name' => 'test',
+            'name' => 'test_gender_update',
             'is_active' => true
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);

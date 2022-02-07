@@ -59,7 +59,7 @@ class CategoryControllerTest extends TestCase
     public function testStore()
     {
         $data = [
-            'name' => 'test'
+            'name' => 'test_category_store'
         ];
         $response = $this->assertStore($data, $data + ['description' => null , 'is_active' => true, 'deleted_at' => null]);
         $response->assertJsonStructure([
@@ -75,13 +75,11 @@ class CategoryControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->category = factory(Category::class)->create([
-            'description' => 'description',
-            'is_active' => false
-        ]);
+        $this->category->is_active = false;
+
         $data = [
-            'name' => 'test',
-            'description' => 'test',
+            'name' => 'test_category_update',
+            'description' => 'test_category_update',
             'is_active' => true 
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
@@ -90,13 +88,13 @@ class CategoryControllerTest extends TestCase
         ]);
 
         $data = [
-            'name' => 'test',
+            'name' => 'test_category_update',
             'description' => ''
         ];
         $this->assertUpdate($data,  array_merge($data, ['description' => null]));
 
-        $data['description'] = 'test';
-        $this->assertUpdate($data,  array_merge($data, ['description' => 'test']));
+        $data['description'] = 'test_update_category';
+        $this->assertUpdate($data,  array_merge($data, ['description' => 'test_update_category']));
   
         $data['description'] = null;
         $this->assertUpdate($data,  array_merge($data, ['description' => null]));
