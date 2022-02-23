@@ -100,4 +100,16 @@ class BasicCrudControllerTest extends TestCase
         $this->assertInstanceOf(CategoryStub::class, $result);
     }
 
+    protected function searchColunmInArray(array $array, string $colunm) {
+        foreach ($array as $key => $value) {
+            if(is_array($value)){
+                return $this->searchColunmInArray($value, $colunm);
+            }
+            elseif ($key == $colunm) {
+                return $value;
+            }
+        }
+        return null;
+    }
+
 }

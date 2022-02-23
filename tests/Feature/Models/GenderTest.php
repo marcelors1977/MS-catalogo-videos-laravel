@@ -39,6 +39,7 @@ class GenderTest extends TestCase
         $gender->refresh();
 
         $this->assertEquals(36,strlen($gender->id));
+        $this->assertTrue( UuidUuid::isValid($gender->id), 'The Uuid '.$gender->id.' is not valid');
         $this->assertEquals('test1', $gender->name);
         $this->assertNull($gender->description);
         $this->assertTrue($gender->is_active);
@@ -53,18 +54,7 @@ class GenderTest extends TestCase
             'name' => 'test1',
             'is_active' => true
         ]);
-        $this->assertTrue($gender->is_active);
-
-        $gender = Gender::create([
-            'name' => 'test_uuid_invalid'
-        ]);
-        $gender->id = '123456789';
-        $this->assertFalse( UuidUuid::isValid($gender->id), 'The Uuid '.$gender->id.' is not valid');
-
-        $gender = Gender::create([
-            'name' => 'test_uuid_valid'
-        ]);
-        $this->assertTrue( UuidUuid::isValid($gender->id), 'The Uuid '.$gender->id.' is not valid');
+        $this->assertTrue($gender->is_active);  
     }
 
     public function testUpdate()

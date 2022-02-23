@@ -39,6 +39,7 @@ class CategoryTest extends TestCase
         $category->refresh();
 
         $this->assertEquals(36,strlen($category->id));
+        $this->assertTrue( UuidUuid::isValid($category->id), 'The Uuid '.$category->id.' is not valid');
         $this->assertEquals('test1', $category->name);
         $this->assertNull($category->description);
         $this->assertTrue($category->is_active);
@@ -65,18 +66,7 @@ class CategoryTest extends TestCase
             'name' => 'test1',
             'is_active' => true
         ]);
-        $this->assertTrue($category->is_active);
-
-        $category = Category::create([
-            'name' => 'test_uuid_invalid'
-        ]);
-        $category->id = '123456789';
-        $this->assertFalse( UuidUuid::isValid($category->id), 'The Uuid '.$category->id.' is not valid');
-
-        $category = Category::create([
-            'name' => 'test_uuid_valid'
-        ]);
-        $this->assertTrue( UuidUuid::isValid($category->id), 'The Uuid '.$category->id.' is not valid');
+        $this->assertTrue($category->is_active);        
     }
 
     public function testUpdate()

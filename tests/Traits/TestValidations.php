@@ -42,14 +42,13 @@ trait TestValidations
     ){
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrors($fields);
+            ->assertJsonValidationErrors($fields);        
 
         foreach ($fields as $field) {
            $fieldname = \str_replace('_',' ',$field);
-           
            $response->assertJsonFragment([
-               \Lang::get("validation.{$rule}", ['attribute' => $fieldname] + $ruleParams)
+               \Lang::get("validation.{$rule}", ['attribute' => $fieldname] + $ruleParams)  
            ]);
         }
-    }    
+    } 
 }

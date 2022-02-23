@@ -4,6 +4,7 @@ namespace Tests\Traits;
 
 use Illuminate\Foundation\Testing\TestResponse;
 
+
 trait TestSaves
 {
     protected abstract function model();
