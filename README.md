@@ -25,7 +25,6 @@ $ docker-compose up -d
   | Gênero | POST | http://localhost:8000/api/genders | Cria um novo gênero. Necessário informar, formato *JSON*, parâmetros no body da requisição |
   | Gênero | PUT | http://localhost:8000/api/genders/<id> | Atualizará um gênero conforme id informado. Necessário informar, formato *JSON*, parâmetros exigidos no body da requisição |
   | Gênero | DELETE | http://localhost:8000/api/genders/<id> | Deletará a ocorrência de gênero conforme id informado |
-
   | Elenco/Direção | GET | http://localhost:8000/api/cast_members | Retorna todas as ocorrências de participantes de um filme |
   | Elenco/Direção | GET | http://localhost:8000/api/cast_members/<id> | Retorna a ocorrência de participante no filme através de id | 
   | Elenco/Direção | POST | http://localhost:8000/api/cast_members | Cria um novo participante no filme. Necessário informar, formato *JSON*, parâmetros no body da requisição |
