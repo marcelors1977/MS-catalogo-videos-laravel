@@ -22,13 +22,18 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . \join(',', Video::RATING_LIST),
             'duration' => 'required|integer',
-            'categories_id' => 'required|array|exists:categories,id'
+            'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
+            'genders_id' => [
+                'required',
+                'array',
+                'exists:genders,id,deleted_at,NULL'
+            ]
         ];
     }
 
     public function store(Request $request)
     {
-        $this->request_categories_id = $request->categories_id;
+        $this->addExtraRule($request->categories_id);
         $validatedDate = $this->validate($request, $this->rulesStore());
         $self = $this;
         $obj = \DB::transaction(function () use ($request, $validatedDate, $self) {
@@ -43,7 +48,7 @@ class VideoController extends BasicCrudController
 
     public function update(Request $request, $id)
     {
-        $this->request_categories_id = $request->categories_id;
+        $this->addExtraRule($request->categories_id);
         $obj = $this->findOrFail($id);
         $validatedDate = $this->validate($request, $this->rulesUpdate());
         $self = $this;
@@ -66,27 +71,18 @@ class VideoController extends BasicCrudController
         return Video::class;
     }
 
+    protected function addExtraRule($request_categories_id)
+    {
+        $this->rules['genders_id'][] = new ExistsRelationsBetween($request_categories_id, Gender::class, 'categories');
+    }
+
     protected function rulesStore()
     {
-        return $this->rules + [
-            'genders_id' => [
-                'required',
-                'array',
-                'exists:genders,id',
-                new ExistsRelationsBetween($this->request_categories_id, Gender::class, 'categories')
-            ]
-        ];    
+        return $this->rules;   
     }
 
     protected function rulesUpdate()
     {
-        return $this->rules + [
-            'genders_id' => [
-                'required',
-                'array',
-                'exists:genders,id',
-                new ExistsRelationsBetween($this->request_categories_id, Gender::class, 'categories')
-            ]
-        ];
+        return $this->rules;
     }
 }
