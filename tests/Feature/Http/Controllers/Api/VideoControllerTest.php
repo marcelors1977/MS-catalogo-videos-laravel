@@ -104,14 +104,25 @@ class VideoControllerTest extends TestCase
     }
 
     public function testInvalidationCategoriesField(){
-        $this->IsInvalidationIfArrayAndExists('categories_id');
+        $category = \factory(Category::class)->create();
+        $category->delete();
+        $dataDeleted = [
+            'categories_id' => [$category->id]
+        ];
+        $this->IsInvalidationIfArrayAndExists('categories_id',$dataDeleted);
+
     }
 
     public function testInvalidationGendersField(){
-        $this->IsInvalidationIfArrayAndExists('genders_id');
+        $gender = \factory(Gender::class)->create();
+        $gender->delete();
+        $dataDeleted = [
+            'genders_id' => [$gender->id]
+        ];
+        $this->IsInvalidationIfArrayAndExists('genders_id', $dataDeleted);
     }
 
-    public function IsInvalidationIfArrayAndExists(string $dataField){
+    public function IsInvalidationIfArrayAndExists(string $dataField, array $dataDeleted){
         $data = [ $dataField => 'a'];
 
         $this->assertInvalidationInStoreAction($data, 'array');
@@ -120,6 +131,9 @@ class VideoControllerTest extends TestCase
         $data = [ $dataField => [100] ];
         $this->assertInvalidationInStoreAction($data, 'exists');
         $this->assertInvalidationInUpdateAction($data, 'exists'); 
+
+        $this->assertInvalidationInStoreAction($dataDeleted, 'exists');
+        $this->assertInvalidationInUpdateAction($dataDeleted, 'exists'); 
     }
 
     public function testInvalidationExistsRelationsBetween(){
@@ -164,6 +178,7 @@ class VideoControllerTest extends TestCase
         $request = \Mockery::mock(Request::class);
         $request->categories_id = [];
 
+        $hasError = false;
         try {
             if( $rules === 'rulesUpdate' ){
                 $controller->update($request, $this->video->id);
@@ -177,43 +192,40 @@ class VideoControllerTest extends TestCase
             } else {
                 $this->assertCount(1, Video::all());
             }  
+            $hasError = true;
         }
+        $this->assertTrue($hasError);
     }
 
     public function testSave(){
-        $category = \factory(Category::class,2)->create();
-        $gender = \factory(Gender::class)->create();
-        \DB::insert(
-            'insert into category_gender (category_id, gender_id) values (?, ?)', 
-            [$category[0]->id, $gender->id]
-        );
-        \DB::insert(
-            'insert into category_gender (category_id, gender_id) values (?, ?)', 
-            [$category[1]->id, $gender->id]
-        );
+        $categoryIds = \factory(Category::class,3)->create()->pluck('id');
+        $gender = \factory(Gender::class,2)->create();
+        $genderIds = [$gender[0]->id, $gender[1]->id];
+        $gender[0]->categories()->sync($categoryIds[0]);   
+        $gender[1]->categories()->sync([$categoryIds[1], $categoryIds[2]]);
 
         $data = [
             [
                 'send_data' => $this->sendData + [
                                     'opened' => false, 
-                                    'categories_id' => [$category[0]->id, $category[1]->id], 
-                                    'genders_id' => [$gender->id]
+                                    'categories_id' => $categoryIds, 
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['opened' => false],
             ],
             [
                 'send_data' => $this->sendData + [
                                     'opened' => true, 
-                                    'categories_id' => [$category[0]->id, $category[1]->id], 
-                                    'genders_id' => [$gender->id]
+                                    'categories_id' => $categoryIds, 
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['opened' => true],
             ],
             [
                 'send_data' => $this->sendData + [
                                     'rating' => Video::RATING_LIST[1], 
-                                    'categories_id' => [$category[0]->id, $category[1]->id], 
-                                    'genders_id' => [$gender->id]
+                                    'categories_id' => $categoryIds, 
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]],
             ]
@@ -227,6 +239,8 @@ class VideoControllerTest extends TestCase
             $response->assertJsonStructure([
                 'created_at', 'updated_at'
             ]);
+            $this->assertHasCategory($response->json('id'), $categoryIds);
+            $this->assertHasGender($response->json('id'), $genderIds);
 
             $response = $this->assertUpdate(
                 $value['send_data'], 
@@ -235,7 +249,108 @@ class VideoControllerTest extends TestCase
             $response->assertJsonStructure([
                 'created_at', 'updated_at'
             ]);
+            $this->assertHasCategory($response->json('id'), $categoryIds);
+            $this->assertHasGender($response->json('id'), $genderIds);
         }
+    }
+
+    protected function assertHasCategory($videoId, $categoryId){
+        $this->assertDatabaseHas('category_video', [
+            'video_id' => $videoId,
+            'category_id' => $categoryId
+        ]);
+    }
+
+    protected function assertHasGender($videoId, $genderId){
+        $this->assertDatabaseHas('gender_video', [
+            'video_id' => $videoId,
+            'gender_id' => $genderId
+        ]);
+    }
+
+    public function testSyncCategories(){
+        $categoryId = \factory(Category::class,3)->create()->pluck('id')->toArray();
+        $gender = \factory(Gender::class)->create();
+        $gender->categories()->sync($categoryId);
+
+        $response = $this->json(
+            'POST',
+            $this->routeStore(),
+            $this->sendData +
+                [ 'genders_id' => [$gender->id],
+                  'categories_id' => [$categoryId[0]]
+                ]
+        );
+
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $response = $this->json(
+            'PUT',
+            $this->routeUpdate(),
+            $this->sendData + [
+                'genders_id' => [$gender->id],
+                'categories_id' => [$categoryId[1],$categoryId[2]]
+            ]
+        );
+        $this->assertDatabaseMissing('category_video', [
+            'category_id' => $categoryId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
+
+    public function testSyncGenders(){
+        $genders = \factory(Gender::class,3)->create();
+        $gendersId = $genders->pluck('id')->toArray();
+        $category = \factory(Category::class)->create();
+        $genders->each(function ($gender) use ($category) {
+            $gender->categories()->sync($category);
+        });
+
+        $response = $this->json(
+            'POST',
+            $this->routeStore(),
+            $this->sendData +
+                [ 'genders_id' => [$gendersId[0]],
+                  'categories_id' => [$category->id]
+                ]
+        );
+
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $response = $this->json(
+            'PUT',
+            $this->routeUpdate(),
+            $this->sendData + [
+                'genders_id' => [$gendersId[1],$gendersId[2]],
+                'categories_id' => [$category->id]
+            ]
+        );
+        $this->assertDatabaseMissing('gender_video', [
+            'gender_id' => $gendersId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[2],
+            'video_id' => $response->json('id')
+        ]);
     }
 
     public function testDelete()

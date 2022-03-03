@@ -33,10 +33,10 @@ class Video extends Model
     public $incrementing = false;
 
     public function categories(){
-        return $this->belongsToMany(Category::class);
+        return $this->belongsToMany(Category::class)->withTrashed();
     }
 
     public function genders(){
-        return $this->belongsToMany(Gender::class);
+        return $this->belongsToMany(Gender::class)->withTrashed();
     }
 }
