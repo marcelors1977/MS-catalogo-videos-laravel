@@ -11,7 +11,6 @@ use App\Rules\ExistsRelationsBetween;
 class VideoController extends BasicCrudController
 {
     private $rules;
-    private $request_categories_id;
 
     public function __construct()
     {
@@ -22,6 +21,7 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . \join(',', Video::RATING_LIST),
             'duration' => 'required|integer',
+            'video_file' => 'mimetypes:video/mp4|max:1000',
             'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
             'genders_id' => [
                 'required',
@@ -35,13 +35,7 @@ class VideoController extends BasicCrudController
     {
         $this->addExtraRule($request->categories_id);
         $validatedDate = $this->validate($request, $this->rulesStore());
-        $self = $this;
-        $obj = \DB::transaction(function () use ($request, $validatedDate, $self) {
-            $obj = $this->model()::create($validatedDate);
-            $self->handleRelations($obj, $request);
-            return $obj;
-        });
-
+        $obj = $this->model()::create($validatedDate);
         $obj->refresh();
         return $obj;
     }
@@ -51,19 +45,8 @@ class VideoController extends BasicCrudController
         $this->addExtraRule($request->categories_id);
         $obj = $this->findOrFail($id);
         $validatedDate = $this->validate($request, $this->rulesUpdate());
-        $self = $this;
-        $obj = \DB::transaction(function () use ($request, $validatedDate, $self, $obj) {
-            $obj->update($validatedDate);
-            $self->handleRelations($obj, $request);
-            return $obj;
-        });
+        $obj->update($validatedDate);
         return $obj;
-    }
-
-    protected function handleRelations($video, Request $request)
-    {
-        $video->categories()->sync($request->get('categories_id'));
-        $video->genders()->sync($request->get('genders_id'));
     }
 
     protected function model()

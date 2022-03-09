@@ -1,0 +1,32 @@
+criar uma nova model
+
+- criar a model
+  php artisan make:model Models/Category --all
+
+- definir na migration os campos da tabela
+
+- alterar a factory para a geração de dados fakes
+
+- criar a seeder
+php artisan make:seeder CategoryTableSeeder
+editando databaseseeder e CategoryTableSeeder
+
+- rodar migrate para criar executar a nova seed
+php artisan migrate --seed
+
+- refresh roda o rollback e aplica a inserção novamente
+php artisan migrate:refresh --seed
+-fresh apaga o banco e executa a migração novamente
+php artisan migrate:fresh --seed
+
+para criar tabela q mantém relacionamento entre outras duas
+-  precisa ser criada maualmente;
+- comando é:
+  php artisan make:migration create_category_video_table
+por padrão no laravel, o nome da migration contém as tabelas no
+singular e por ordem alfabética
+executar testes
+
+ - classe específica : vendor/bin/phpunit tests/Unit/Models/CategoryTest.php
+ - Método específico em um arquivo : vendor/bin/phpunit --filter testIfUseTraits tests/Unit/Models/CategoryTest.php
+ - classe específico em uma classe : vendor/bin/phpunit --filter CategoryTest::testIfUseTraits
