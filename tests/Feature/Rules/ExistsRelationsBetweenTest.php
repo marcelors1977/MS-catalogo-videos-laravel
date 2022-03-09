@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Gender;
 use App\Rules\ExistsRelationsBetween;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Database\Eloquent\Collection;
 use Tests\TestCase;
 
 class ExistsRelationsBetweenTest extends TestCase

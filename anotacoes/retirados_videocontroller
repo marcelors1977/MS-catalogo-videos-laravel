@@ -1,0 +1,135 @@
+    // Retirado pois create e update foi migrado para a model de Video ao invés de deixar no controller
+    // public function testRollbackStore(){
+    //     $this->generalRollback('rulesStore');
+    // }
+
+    // public function testRollbackUpdate(){
+    //     $this->generalRollback('rulesUpdate');
+    // }
+
+    // public function generalRollback($rules){
+    //     $controller = \Mockery::mock(VideoController::class)
+    //         ->makePartial()
+    //         ->shouldAllowMockingProtectedMethods();
+        
+    //     $controller
+    //         ->shouldReceive('validate')
+    //         ->withAnyArgs()
+    //         ->andReturn($this->sendData + ['categories_id' => [], 'genders_id' => []] );
+
+    //     $controller
+    //         ->shouldReceive($rules)
+    //         ->withAnyArgs()
+    //         ->andReturn([]);
+  
+    //     $controller
+    //         ->shouldReceive('handleRelations')
+    //         ->once()
+    //         ->andThrow(new TestException());
+
+    //     $request = \Mockery::mock(Request::class);
+    //     $request->categories_id = [];
+
+    //     $hasError = false;
+    //     try {
+    //         if( $rules === 'rulesUpdate' ){
+    //             $controller->update($request, $this->video->id);
+    //         } else {
+    //             $controller->store($request);
+    //         }
+            
+    //     } catch (TestException $exception) {
+    //         if( $rules === 'rulesUpdate' ){
+    //             $this->assertNotEquals($this->sendData['duration'],Video::find($this->video->id)->toArray()['duration'] );
+    //         } else {
+    //             $this->assertCount(1, Video::all());
+    //         }  
+    //         $hasError = true;
+    //     }
+    //     $this->assertTrue($hasError);
+    // }
+
+    public function testSyncCategories(){
+        $categoryId = \factory(Category::class,3)->create()->pluck('id')->toArray();
+        $gender = \factory(Gender::class)->create();
+        $gender->categories()->sync($categoryId);
+
+        $response = $this->json(
+            'POST',
+            $this->routeStore(),
+            $this->sendData +
+                [ 'genders_id' => [$gender->id],
+                  'categories_id' => [$categoryId[0]]
+                ]
+        );
+
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $response = $this->json(
+            'PUT',
+            $this->routeUpdate(),
+            $this->sendData + [
+                'genders_id' => [$gender->id],
+                'categories_id' => [$categoryId[1],$categoryId[2]]
+            ]
+        );
+        $this->assertDatabaseMissing('category_video', [
+            'category_id' => $categoryId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoryId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
+
+    public function testSyncGenders(){
+        $genders = \factory(Gender::class,3)->create();
+        $gendersId = $genders->pluck('id')->toArray();
+        $category = \factory(Category::class)->create();
+        $genders->each(function ($gender) use ($category) {
+            $gender->categories()->sync($category);
+        });
+
+        $response = $this->json(
+            'POST',
+            $this->routeStore(),
+            $this->sendData +
+                [ 'genders_id' => [$gendersId[0]],
+                  'categories_id' => [$category->id]
+                ]
+        );
+
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $response = $this->json(
+            'PUT',
+            $this->routeUpdate(),
+            $this->sendData + [
+                'genders_id' => [$gendersId[1],$gendersId[2]],
+                'categories_id' => [$category->id]
+            ]
+        );
+        $this->assertDatabaseMissing('gender_video', [
+            'gender_id' => $gendersId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('gender_video', [
+            'gender_id' => $gendersId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
