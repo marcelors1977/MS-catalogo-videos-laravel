@@ -1,33 +1,25 @@
 <?php
 
-namespace Tests\Feature\Models;
+namespace Tests\Feature\Models\Video;
 
 use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Video;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Tests\TestCase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid as UuidUuid;
 
-class VideoTest extends TestCase
+class VideoCrudTest extends BaseVideoTestCase
 {
-    use DatabaseMigrations;
+    private $filefields = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->sendData = [
-                    'title' => 'test_video',
-                    'description' => 'description',
-                    'year_launched' => 2010,
-                    'rating' => Video::RATING_LIST[0],
-                    'duration' => 120
-                ];
+        foreach (Video::$filefields as $field) {
+            $this->filefields[$field] = "{$field}.test";
+        }
     }
-
+    
     public function testList()
     {
         factory(Video::class, 1)->create();
@@ -44,6 +36,9 @@ class VideoTest extends TestCase
                 'rating',
                 'duration',
                 'video_file',
+                'thumb_file',
+                'banner_file',
+                'trailer_file',
                 'created_at',
                 'updated_at',
                 'deleted_at'
@@ -54,12 +49,15 @@ class VideoTest extends TestCase
 
     public function testCreate()
     {   
-        $video = Video::create($this->sendData);
+        $video = Video::create($this->sendData + $this->filefields);
         $video->refresh();
 
         $this->assertEquals(36,strlen($video->id));
         $this->assertTrue( UuidUuid::isValid($video->id), 'The Uuid '.$video->id.' is not valid');
-        $this->assertDatabaseHas('videos', $this->sendData + ['opened' => false]);
+        $this->assertDatabaseHas(
+            'videos', 
+            $this->sendData + $this->filefields + ['opened' => false]
+        );
         $this->assertFalse($video->opened);
        
         $video = Video::create($this->sendData + ['opened' => true]);
@@ -80,30 +78,32 @@ class VideoTest extends TestCase
         $this->assertHasCategory($video->id, $category->id);
         $this->assertHasGender($video->id, $gender->id);
     }
-    
-    public function testFileExistsAfterCreateVideo() 
-    {
-        $category = \factory(Category::class)->create();
-        $gender = \factory(Gender::class)->create();
-        Storage::fake();
-        $file = UploadedFile::fake()->create('video.mp4');
 
-        $video = Video::create($this->sendData + [
-            'categories_id' => [$category->id],
-            'genders_id' => [$gender->id],
-            'video_file' =>  $file
-        ]);
-        Storage::assertExists("{$video->id}/{$file->hashName()}");
-        $this->assertHasCategory($video->id, $category->id);
-        $this->assertHasGender($video->id, $gender->id);
+    public function testRollbackStore(){
+        $hasError = false;
+        try {
+            Video::create([$this->sendData + 
+                [
+                    'categories_id' => [0,1,2],
+                    'genders_id' => [1]
+                ]
+            ]);          
+        } catch (QueryException $exception) {
+            $this->assertCount(0,Video::all());
+            $hasError = true;
+        }
+        $this->assertTrue($hasError);
     }
-
+    
     public function testUpdate()
     {
         $video = factory(Video::class)->create(['opened' => false]);
-        $video->update($this->sendData);
+        $video->update($this->sendData + $this->filefields);
         $this->assertFalse($video->opened);
-        $this->assertDatabaseHas('videos', $this->sendData + ['opened' => false]);
+        $this->assertDatabaseHas(
+            'videos', 
+            $this->sendData + $this->filefields + ['opened' => false]
+        );
 
         $video = factory(Video::class)->create(['opened' => false]);
         $video->update($this->sendData + ['opened' => true]);
@@ -128,51 +128,6 @@ class VideoTest extends TestCase
         $this->assertHasGender($video->id, $gender->id);
     }
 
-    protected function assertHasCategory($videoId, $categoryId){
-        $this->assertDatabaseHas('category_video', [
-            'video_id' => $videoId,
-            'category_id' => $categoryId
-        ]);
-    }
-
-    protected function assertHasGender($videoId, $genderId){
-        $this->assertDatabaseHas('gender_video', [
-            'video_id' => $videoId,
-            'gender_id' => $genderId
-        ]);
-    }
-
-    public function testDelete()
-    {
-        $video = factory(Video::class, 2)->create();
-        $VideoToDelete = $video[0];
-        $video[0]->delete();
-        $this->assertCount(1, Video::all());
-        $this->assertNull(Video::find($video[0]->id));
-
-        $video[0]->restore();
-        $this->assertNotNull(Video::find($video[0]->id));
-    }
-
-    public function testRollbackStore(){
-        $hasError = false;
-        Storage::fake();
-        $file = UploadedFile::fake()->create('video.mp4');
-        try {
-            Video::create([$this->sendData + 
-                [
-                    'categories_id' => [0,1,2],
-                    'genders_id' => [1]
-                ]
-            ]);          
-        } catch (QueryException $exception) {
-            $this->assertCount(0,Video::all());
-            Storage::disk()->assertMissing($file->hashName());
-            $hasError = true;
-        }
-        $this->assertTrue($hasError);
-    }
-
     public function testRollbackUpdate(){
         $video = \factory(Video::class)->create();
         $oldtitle = $video->title;
@@ -189,6 +144,17 @@ class VideoTest extends TestCase
             $hasError = true;
         }
         $this->assertTrue($hasError);
+    }
+
+    public function testDelete()
+    {
+        $video = factory(Video::class, 2)->create();
+        $video[0]->delete();
+        $this->assertCount(1, Video::all());
+        $this->assertNull(Video::find($video[0]->id));
+
+        $video[0]->restore();
+        $this->assertNotNull(Video::find($video[0]->id));
     }
 
     public function testHandleRelations(){
@@ -221,7 +187,6 @@ class VideoTest extends TestCase
         $video->refresh();
         $this->assertCount(1, $video->categories);
         $this->assertCount(1, $video->genders);
-
     }
 
     public function testSyncCategories(){
@@ -278,6 +243,19 @@ class VideoTest extends TestCase
             'gender_id' => $gendersId[2],
             'video_id' => $video->id
         ]);
+    }
 
+    protected function assertHasCategory($videoId, $categoryId){
+        $this->assertDatabaseHas('category_video', [
+            'video_id' => $videoId,
+            'category_id' => $categoryId
+        ]);
+    }
+
+    protected function assertHasGender($videoId, $genderId){
+        $this->assertDatabaseHas('gender_video', [
+            'video_id' => $videoId,
+            'gender_id' => $genderId
+        ]);
     }
 }
