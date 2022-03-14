@@ -8,7 +8,7 @@ use App\Models\Traits\Uuid;
 use App\Models\Traits\UploadFiles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class VideoUniTest extends TestCase
+class VideoUnitTest extends TestCase
 {
     private $video;
 
@@ -20,8 +20,30 @@ class VideoUniTest extends TestCase
 
     public function testFillableAttribute()
     {
-        $fillable = ['title','description', 'year_launched', 'opened', 'rating', 'duration'];
+        $fillable = [
+            'title',
+            'description', 
+            'year_launched', 
+            'opened', 
+            'rating', 
+            'duration', 
+            'video_file', 
+            'thumb_file',
+            'banner_file',
+            'trailer_file'
+        ];
         $this->assertEquals($fillable, $this->video->getFillable());
+    }
+
+    public function testFileFields(){
+        $filefields = [
+            'video_file', 
+            'thumb_file', 
+            'banner_file', 
+            'trailer_file'
+        ];
+        
+        $this->assertEquals($filefields, Video::$filefields);
     }
     
     public function testIfUseTraits()

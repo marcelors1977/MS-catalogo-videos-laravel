@@ -1,36 +1,16 @@
 <?php
 
-namespace Tests\Feature\Http\Controllers\Api;
+namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
-use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Video;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Http\UploadedFile;
-use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
-class VideoControllerTest extends TestCase
+class VideoControllerTest extends BaseVideoControllerTestCase
 {
-    use DatabaseMigrations, TestValidations, TestSaves;
-
-    private $video;
-    private $sendData;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->video = factory(Video::class)->create();
-        $this->sendData = [
-                    'title' => 'test_video_store',
-                    'description' => 'description',
-                    'year_launched' => 2010,
-                    'rating' => Video::RATING_LIST[0],
-                    'duration' => 120
-                ];
-    }
+    use TestValidations, TestSaves;
 
     public function testIndex()
     {
@@ -68,12 +48,6 @@ class VideoControllerTest extends TestCase
         ];
         $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 255]);
         $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);       
-
-        $data = [ 
-            'video_file' => str_repeat('a', 1001)
-        ];
-        $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 1000]);
-        $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 1000]);    
     }
 
     public function testInvalidationInteger(){
@@ -106,14 +80,6 @@ class VideoControllerTest extends TestCase
         ];
         $this->assertInvalidationInStoreAction($data, 'in');
         $this->assertInvalidationInUpdateAction($data, 'in');      
-    }
-
-    public function testInvalidationTypeOfVideoFile(){
-        $data = [ 
-            'video_file' => 'a'
-        ];
-        $this->assertInvalidationInStoreAction($data, 'mimetypes', ['values' => 'video/mp4']);
-        $this->assertInvalidationInUpdateAction($data, 'mimetypes', ['values' => 'video/mp4']);      
     }
 
     public function testInvalidationCategoriesField(){
@@ -160,22 +126,19 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data, 'ExistsRelationsBetween');    
     }
 
-    public function testSave(){
+    public function testSaveWithoutFiles(){
         $categoryIds = \factory(Category::class,3)->create()->pluck('id');
         $gender = \factory(Gender::class,2)->create();
         $genderIds = [$gender[0]->id, $gender[1]->id];
         $gender[0]->categories()->sync($categoryIds[0]);   
         $gender[1]->categories()->sync([$categoryIds[1], $categoryIds[2]]);
-        Storage::fake();
-        $file = UploadedFile::fake()->create('video',10,'video/mp4');
-
+      
         $data = [
             [
                 'send_data' => $this->sendData + [
                                     'opened' => false, 
                                     'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds,
-                                    'video_file' => $file
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['opened' => false],
             ],
@@ -183,8 +146,7 @@ class VideoControllerTest extends TestCase
                 'send_data' => $this->sendData + [
                                     'opened' => true, 
                                     'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds,
-                                    'video_file' => $file
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['opened' => true],
             ],
@@ -192,8 +154,7 @@ class VideoControllerTest extends TestCase
                 'send_data' => $this->sendData + [
                                     'rating' => Video::RATING_LIST[1], 
                                     'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds,
-                                    'video_file' => $file
+                                    'genders_id' => $genderIds
                                 ],
                 'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]],
             ]
@@ -209,7 +170,6 @@ class VideoControllerTest extends TestCase
             ]);
             $this->assertHasCategory($response->json('id'), $categoryIds);
             $this->assertHasGender($response->json('id'), $genderIds);
-            Storage::assertExists("{$response->json('id')}/{$file->hashName()}");
 
             $response = $this->assertUpdate(
                 $value['send_data'], 
@@ -221,20 +181,6 @@ class VideoControllerTest extends TestCase
             $this->assertHasCategory($response->json('id'), $categoryIds);
             $this->assertHasGender($response->json('id'), $genderIds);
         }
-    }
-
-    protected function assertHasCategory($videoId, $categoryId){
-        $this->assertDatabaseHas('category_video', [
-            'video_id' => $videoId,
-            'category_id' => $categoryId
-        ]);
-    }
-
-    protected function assertHasGender($videoId, $genderId){
-        $this->assertDatabaseHas('gender_video', [
-            'video_id' => $videoId,
-            'gender_id' => $genderId
-        ]);
     }
 
     public function testDelete()
@@ -251,6 +197,20 @@ class VideoControllerTest extends TestCase
         $response->assertJson([$this->video->toArray()]);
 
         $this->assertNotNull(Video::withTrashed()->find($this->video->id));
+    }
+
+    protected function assertHasCategory($videoId, $categoryId){
+        $this->assertDatabaseHas('category_video', [
+            'video_id' => $videoId,
+            'category_id' => $categoryId
+        ]);
+    }
+
+    protected function assertHasGender($videoId, $genderId){
+        $this->assertDatabaseHas('gender_video', [
+            'video_id' => $videoId,
+            'gender_id' => $genderId
+        ]);
     }
 
     protected function routeStore(){

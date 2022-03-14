@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -18,7 +17,11 @@ class Video extends Model
         'year_launched', 
         'opened', 
         'rating', 
-        'duration'
+        'duration',
+        'video_file',
+        'thumb_file',
+        'banner_file',
+        'trailer_file'
     ];
 
     protected $dates = ['deleted_at'];
@@ -31,7 +34,12 @@ class Video extends Model
     ];
 
     public $incrementing = false;
-    public static $filefields = ['video_file'];
+    public static $filefields = [
+        'video_file', 
+        'thumb_file', 
+        'banner_file', 
+        'trailer_file'
+    ];
 
     public static function create(array $attributes = []){
         $files = self::extractFiles($attributes);
@@ -52,19 +60,21 @@ class Video extends Model
     }
 
     public function update(array $attributes = [], array $options = []){
+        $files = self::extractFiles($attributes);
         try {
             \DB::beginTransaction();
             $saved = parent::update($attributes, $options);
             static::handleRelations($this, $attributes);
             if ($saved){
-                //uploads aqui
-                //exlcuir os antigos
+                self::uploadFiles($files);
             }
-            //uploads
             \DB::commit();
+            if ($saved && count($files)){
+                self::deleteOldFiles();
+            }
             return $saved;
         } catch (\Exception $e) {
-            // excluir os arquivos de uploads
+            self::deleteFiles($files);
             \DB::rollback();
             throw $e;
         }
@@ -87,6 +97,26 @@ class Video extends Model
 
     public function genders(){
         return $this->belongsToMany(Gender::class)->withTrashed();
+    }
+
+    public function getVideoFileUrlAttribute()
+    {
+       return $this->video_file ? $this->getFileUrl($this->video_file) : null;
+    }
+
+    public function getThumbFileUrlAttribute()
+    {
+       return $this->thumb_file ? $this->getFileUrl($this->thumb_file) : null;
+    }
+
+    public function getBannerFileUrlAttribute()
+    {
+       return $this->banner_file ? $this->getFileUrl($this->banner_file) : null;
+    }
+
+    public function getTrailerFileUrlAttribute()
+    {
+       return $this->trailer_file ? $this->getFileUrl($this->trailer_file) : null;
     }
 
     protected function uploadDir(){
