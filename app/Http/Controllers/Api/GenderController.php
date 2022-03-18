@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\GenderResource;
 use App\Models\Gender;
 use illuminate\Http\Request;
 
@@ -20,12 +21,13 @@ class GenderController extends BasicCrudController
         $self = $this;
         $obj = \DB::transaction(function () use ($request, $validatedDate, $self) {
             $obj = $this->model()::create($validatedDate);
-            $self->handleRelations($obj, $request);
+            $self->handleRelations($obj, $validatedDate);
             return $obj;
         });
 
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function update(Request $request, $id)
@@ -35,14 +37,17 @@ class GenderController extends BasicCrudController
         $self = $this;
         $obj = \DB::transaction(function () use ($request, $validatedDate, $self, $obj) {
             $obj->update($validatedDate);
-            $self->handleRelations($obj, $request);
+            $self->handleRelations($obj, $validatedDate);
             return $obj;
         });
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
-    protected function handleRelations($gender, Request $request){
-        $gender->categories()->sync($request->get('categories_id'));
+    protected function handleRelations($gender, $validatedDate){
+        if (isset($validatedDate['categories_id'])){
+            $gender->categories()->sync($validatedDate['categories_id']);
+        }         
     }
 
     protected function model(){
@@ -56,4 +61,14 @@ class GenderController extends BasicCrudController
     protected function  rulesUpdate(){
         return $this->rules;
     }  
+
+    protected function  resourceCollection()
+    {
+        return $this->resource();
+    }
+
+    protected function  resource()
+    {
+        return GenderResource::class;   
+    }
 }

@@ -45,6 +45,15 @@ class VideoUploadTest extends BaseVideoTestCase
         }
     }
 
+    public function testValidationFileUrlWhenFieldsNull() 
+    {
+        $video = \factory(Video::class)->create();
+        foreach (Video::$filefields as $field) {
+            $fileUrl = $video->{"{$field}_url"};
+            $this->assertNull($fileUrl);
+        }
+    }
+
     public function testUpdateVideoWithFiles()
     {
         Storage::fake();

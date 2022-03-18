@@ -2,30 +2,102 @@
 
 namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Video;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
+use Illuminate\Support\Arr;
+use Tests\Traits\TestResources;
 
-class VideoControllerTest extends BaseVideoControllerTestCase
+class VideoControllerCrudTest extends BaseVideoControllerTestCase
 {
-    use TestValidations, TestSaves;
+    private $serializedFields = [
+        'id',
+        'title',
+        'description',
+        'year_launched',
+        'opened',
+        'rating',
+        'duration',
+        'video_file',
+        'thumb_file',
+        'banner_file',
+        'trailer_file',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'categories' => [
+            '*' => [
+                'id',
+                'name',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ],
+        'genders' =>  [
+            '*' => [
+                'id',
+                'name',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+                'categories' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'description',
+                        'is_active',
+                        'created_at',
+                        'updated_at',
+                        'deleted_at'
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    use TestValidations, TestSaves, TestResources;
 
     public function testIndex()
     {
         $response = $this->get(route('videos.index'));
 
-        $response->assertStatus(200);
-        $response->assertJson([$this->video->toArray()]);
+        $response   
+            ->assertStatus(200)
+            ->assertJson([
+                'meta' => ['per_page' => 15]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => $this->serializedFields
+                ],
+                'links' => [],
+                'meta' => []
+            ]);
+
+        $resource = VideoResource::collection(collect([$this->video]));
+        $this->assertResource($response, $resource); 
     }
 
     public function testShow()
     {
         $response = $this->get(route('videos.show', ['video' => $this->video->id]));
 
-        $response->assertStatus(200);
-        $response->assertJson($this->video->toArray());
+        $response
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => $this->serializedFields
+            ]);
+
+        $id = $this->getIdFromResponse($response);
+        $resource = new VideoResource(Video::find($id));
+        $this->assertResource($response, $resource);
     }
 
     public function testInvalidationRequired(){
@@ -83,7 +155,7 @@ class VideoControllerTest extends BaseVideoControllerTestCase
     }
 
     public function testInvalidationCategoriesField(){
-        $category = \factory(Category::class)->create();
+        $category = factory(Category::class)->create();
         $category->delete();
         $dataDeleted = [
             'categories_id' => [$category->id]
@@ -93,7 +165,7 @@ class VideoControllerTest extends BaseVideoControllerTestCase
     }
 
     public function testInvalidationGendersField(){
-        $gender = \factory(Gender::class)->create();
+        $gender = factory(Gender::class)->create();
         $gender->delete();
         $dataDeleted = [
             'genders_id' => [$gender->id]
@@ -116,7 +188,7 @@ class VideoControllerTest extends BaseVideoControllerTestCase
     }
 
     public function testInvalidationExistsRelationsBetween(){
-        $gender = \factory(Gender::class)->create();
+        $gender = factory(Gender::class)->create();
         
         $data = [  
             'genders_id' => [$gender->id]
@@ -127,36 +199,20 @@ class VideoControllerTest extends BaseVideoControllerTestCase
     }
 
     public function testSaveWithoutFiles(){
-        $categoryIds = \factory(Category::class,3)->create()->pluck('id');
-        $gender = \factory(Gender::class,2)->create();
-        $genderIds = [$gender[0]->id, $gender[1]->id];
-        $gender[0]->categories()->sync($categoryIds[0]);   
-        $gender[1]->categories()->sync([$categoryIds[1], $categoryIds[2]]);
+        $testData = Arr::except($this->sendData, ['categories_id', 'genders_id']);
       
         $data = [
             [
-                'send_data' => $this->sendData + [
-                                    'opened' => false, 
-                                    'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds
-                                ],
-                'test_data' => $this->sendData + ['opened' => false],
+                'send_data' => $this->sendData + ['opened' => false],
+                'test_data' => $testData + ['opened' => false],
             ],
             [
-                'send_data' => $this->sendData + [
-                                    'opened' => true, 
-                                    'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds
-                                ],
-                'test_data' => $this->sendData + ['opened' => true],
+                'send_data' => $this->sendData + [ 'opened' => true],
+                'test_data' => $testData +  ['opened' => true],
             ],
             [
-                'send_data' => $this->sendData + [
-                                    'rating' => Video::RATING_LIST[1], 
-                                    'categories_id' => $categoryIds, 
-                                    'genders_id' => $genderIds
-                                ],
-                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]],
+                'send_data' => $this->sendData + [ 'rating' => Video::RATING_LIST[1]],
+                'test_data' => $testData + ['rating' => Video::RATING_LIST[1]],
             ]
         ];
 
@@ -166,20 +222,26 @@ class VideoControllerTest extends BaseVideoControllerTestCase
                 $value['test_data'] + ['deleted_at' => null]
             );
             $response->assertJsonStructure([
-                'created_at', 'updated_at'
+                'data' => $this->serializedFields
             ]);
-            $this->assertHasCategory($response->json('id'), $categoryIds);
-            $this->assertHasGender($response->json('id'), $genderIds);
+            $id = $this->getIdFromResponse($response);
+            $resource = new VideoResource(Video::find($id));
+            $this->assertResource($response, $resource);
+            $this->assertHasCategory($id, $this->sendData['categories_id']);
+            $this->assertHasGender($id, $this->sendData['genders_id']);
 
             $response = $this->assertUpdate(
                 $value['send_data'], 
                 $value['test_data'] + ['deleted_at' => null]
             );
             $response->assertJsonStructure([
-                'created_at', 'updated_at'
+                'data' => $this->serializedFields
             ]);
-            $this->assertHasCategory($response->json('id'), $categoryIds);
-            $this->assertHasGender($response->json('id'), $genderIds);
+            $id = $this->getIdFromResponse($response);
+            $resource = new VideoResource(Video::find($id));
+            $this->assertResource($response, $resource);
+            $this->assertHasCategory($id, $this->sendData['categories_id']);
+            $this->assertHasGender($id, $this->sendData['genders_id']);
         }
     }
 
@@ -194,7 +256,8 @@ class VideoControllerTest extends BaseVideoControllerTestCase
         $response->assertNotFound();
         
         $response = $this->get(route('videos.index'));
-        $response->assertJson([$this->video->toArray()]);
+        $resource = VideoResource::collection(collect([$this->video]));
+        $this->assertResource($response, $resource);
 
         $this->assertNotNull(Video::withTrashed()->find($this->video->id));
     }

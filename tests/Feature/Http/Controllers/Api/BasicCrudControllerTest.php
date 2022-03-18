@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BasicCrudController;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Tests\Stubs\Controllers\CategoryControllerStub;
 use Tests\Stubs\Models\CategoryStub;
@@ -12,6 +13,14 @@ use illuminate\Validation\ValidationException;
 
 class BasicCrudControllerTest extends TestCase
 {
+    private $serializedFields = [
+        'id',
+        'name',
+        'description',
+        'created_at',
+        'updated_at'
+    ];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,7 +37,15 @@ class BasicCrudControllerTest extends TestCase
 
     public function testIndex(){
         $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
-        $this->assertEquals([$category->toArray()], $this->controller->index()->toArray());
+        $dataArray = $this->controller->index()->response()->getData(true);
+        
+        $this->assertEquals([$category->toArray()], $dataArray['data']);
+
+        $this->assertArrayHasKey('links', $dataArray);
+        $this->assertEquals(15, $dataArray['meta']['per_page']);
+        foreach ($this->serializedFields as $key) {
+            $this->assertArrayHasKey($key, $dataArray['data'][0]);
+        }
     }
 
     public function testInvalidationDataInStore(){
@@ -48,15 +65,26 @@ class BasicCrudControllerTest extends TestCase
             ->once()
             ->andReturn(['name' => 'test_name', 'description' => 'test_description']);
         $obj = $this->controller->store($request);
-        $this->assertEquals(
-            CategoryStub::find(1)->toArray(),
-            $obj->toArray()
-        );
+        $data = $obj->response()->getData(true);
+        
+        $this->assertArrayHasKey('data', $data);
+        $this->assertEquals($data['data'],CategoryStub::find($obj->id)->toArray());
+       
+        foreach ($this->serializedFields as $key) {
+            $this->assertArrayHasKey($key, $data['data']);
+        }
     }
-
+    
     public function testShow(){
         $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
-        $this->assertEquals([$category->toArray()], [$this->controller->show([$category->id])->toArray()]);
+        $data = $this->controller->show([$category->id])->response()->getData(true);
+        
+        $this->assertArrayHasKey('data', $data);
+        $this->assertEquals($data['data'],$category->toArray());
+        
+        foreach ($this->serializedFields as $key) {
+            $this->assertArrayHasKey($key, $data['data']);
+        }
     }
 
     public function testUpdate(){
@@ -67,10 +95,14 @@ class BasicCrudControllerTest extends TestCase
             ->once()
             ->andReturn(['name' => 'test_updated', 'description' => 'test_description_updated']);
         $obj = $this->controller->update($request, $category->id);
-        $this->assertEquals(
-            CategoryStub::find(1)->toArray(),
-            $obj->toArray()
-        );
+        $data = $obj->response()->getData(true);
+  
+        $this->assertArrayHasKey('data', $data);
+        $this->assertEquals($data['data'],CategoryStub::find($obj->id)->toArray());
+
+        foreach ($this->serializedFields as $key) {
+            $this->assertArrayHasKey($key, $data['data']);
+        }
     }
 
     public function testDelete(){
@@ -99,17 +131,4 @@ class BasicCrudControllerTest extends TestCase
         $result = $refletionMethod->invokeArgs($this->controller, [0]);
         $this->assertInstanceOf(CategoryStub::class, $result);
     }
-
-    protected function searchColunmInArray(array $array, string $colunm) {
-        foreach ($array as $key => $value) {
-            if(is_array($value)){
-                return $this->searchColunmInArray($value, $colunm);
-            }
-            elseif ($key == $colunm) {
-                return $value;
-            }
-        }
-        return null;
-    }
-
 }

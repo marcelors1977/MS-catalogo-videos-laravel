@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Gender;
 use App\Models\Video;
 use illuminate\Http\Request;
@@ -21,10 +22,10 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . \join(',', Video::RATING_LIST),
             'duration' => 'required|integer',
-            'video_file' => 'mimetypes:video/mp4|max:50000000',
-            'thumb_file' => 'image|max:5000',
-            'banner_file' => 'image|max:10000',
-            'trailer_file' => 'mimetypes:video/mp4|max:1000000',
+            'video_file' => 'mimetypes:video/mp4|max:' . Video::VIDEO_FILE_MAX_SIZE,
+            'thumb_file' => 'image|max:' . Video::THUMB_FILE_MAX_SIZE,
+            'banner_file' => 'image|max:' . Video::BANNER_FILE_MAX_SIZE,
+            'trailer_file' => 'mimetypes:video/mp4|max:' . Video::TRAILER_FILE_MAX_SIZE,
             'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
             'genders_id' => [
                 'required',
@@ -40,7 +41,8 @@ class VideoController extends BasicCrudController
         $validatedDate = $this->validate($request, $this->rulesStore());
         $obj = $this->model()::create($validatedDate);
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function update(Request $request, $id)
@@ -49,7 +51,8 @@ class VideoController extends BasicCrudController
         $obj = $this->findOrFail($id);
         $validatedDate = $this->validate($request, $this->rulesUpdate());
         $obj->update($validatedDate);
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     protected function model()
@@ -70,5 +73,15 @@ class VideoController extends BasicCrudController
     protected function rulesUpdate()
     {
         return $this->rules;
+    }
+
+    protected function  resourceCollection()
+    {
+        return $this->resource();
+    }
+
+    protected function  resource()
+    {
+        return VideoResource::class;   
     }
 }
