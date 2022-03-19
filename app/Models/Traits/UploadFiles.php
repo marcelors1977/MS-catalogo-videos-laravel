@@ -49,7 +49,7 @@ trait UploadFiles {
 
     public function deleteFile($file){
         $filename = $file instanceof UploadedFile ? $file->hashName() : $file;
-        \Storage::delete("{$this->uploadDir()}/{$filename}");
+        Storage::delete($this->relativeFilePath($filename));
     }
 
     public static function extractFiles(array &$attributes = []){
@@ -64,6 +64,10 @@ trait UploadFiles {
     }
 
     public function getFileUrl($filename){
-        return Storage::url("{$this->uploadDir()}/$filename");
+        return Storage::url($this->relativeFilePath($filename));
+    }
+
+    public function relativeFilePath($value) {
+        return "{$this->uploadDir()}/{$value}";
     }
 }

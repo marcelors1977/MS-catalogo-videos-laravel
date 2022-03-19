@@ -35,6 +35,27 @@ class VideoUnitTest extends TestCase
         $this->assertEquals($fillable, $this->video->getFillable());
     }
 
+    public function testConstRatingList()
+    {
+        $rating_list = [
+            'L',
+            '10', 
+            '12', 
+            '14', 
+            '16', 
+            '18'
+        ];
+        $this->assertEquals($rating_list, Video::RATING_LIST);
+    }
+
+    public function testConstFilesSize()
+    {
+        $this->assertEquals(Video::THUMB_FILE_MAX_SIZE, 1024 * 5);
+        $this->assertEquals(Video::BANNER_FILE_MAX_SIZE, 1024 * 10);
+        $this->assertEquals(Video::TRAILER_FILE_MAX_SIZE, 1024 * 1024 * 1);
+        $this->assertEquals(Video::VIDEO_FILE_MAX_SIZE, 1024 * 1024 * 50);
+    }
+
     public function testFileFields(){
         $filefields = [
             'video_file', 

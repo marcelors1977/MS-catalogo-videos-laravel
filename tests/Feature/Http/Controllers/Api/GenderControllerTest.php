@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\GenderController;
+use App\Http\Resources\GenderResource;
 use App\Models\Category;
 use App\Models\Gender;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -11,12 +12,32 @@ use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 use Tests\Exceptions\TestException;
 use illuminate\Http\Request;
+use Tests\Traits\TestResources;
 
 class GenderControllerTest extends TestCase
 {
-    use DatabaseMigrations, TestValidations, TestSaves;
+    use DatabaseMigrations, TestValidations, TestSaves, TestResources;
 
     private $gender;
+    private $serializedFields = [
+        'id',
+        'name',
+        'is_active',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'categories' => [
+            '*' => [
+                'id',
+                'name',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ]
+    ];
 
     protected function setUp(): void
     {
@@ -26,18 +47,37 @@ class GenderControllerTest extends TestCase
 
     public function testIndex()
     {
-         $response = $this->get(route('genders.index'));
+        $response = $this->get(route('genders.index'));
+        $response
+            ->assertStatus(200)
+            ->assertJson([
+                'meta' => ['per_page' => 15]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => $this->serializedFields
+                ],
+                'links' => [],
+                'meta' => []
+            ]);
 
-        $response->assertStatus(200);
-        $response->assertJson([$this->gender->toArray()]);
+            $resource = GenderResource::collection(collect([$this->gender]));
+            $this->assertResource($response, $resource); 
     }
 
     public function testShow()
     {
         $response = $this->get(route('genders.show', ['gender' => $this->gender->id]));
 
-        $response->assertStatus(200);
-        $response->assertJson($this->gender->toArray());
+        $response
+            ->assertStatus(200)
+            ->assertJsonStructure([
+            'data' => $this->serializedFields
+            ])
+            ->assertJsonFragment($this->gender->toArray());
+
+        $resource = new GenderResource($this->gender);
+        $this->assertResource($response, $resource);
     }
 
     public function testInvalidationRequired(){
@@ -136,7 +176,6 @@ class GenderControllerTest extends TestCase
         $this->assertTrue($hasError);
     }
 
-
     public function testSave(){
         $category = \factory(Category::class)->create();
         $data = [
@@ -156,26 +195,23 @@ class GenderControllerTest extends TestCase
                 $value['test_data'] + ['deleted_at' => null]
             );   
             $response->assertJsonStructure([
-                'created_at', 'updated_at'
+                'data' => $this->serializedFields
             ]);
-            $this->assertHasCategory($response->json('id'), $category->id);
+            $id = $this->getIdFromResponse($response);
+            $this->assertHasCategory($id, $category->id);
+            $this->assertResource($response, new GenderResource(Gender::find($id)));
 
             $response = $this->assertUpdate(
                 $value['send_data'], 
                 $value['test_data'] + ['deleted_at' => null]
             );
             $response->assertJsonStructure([
-                'created_at', 'updated_at'
+                'data' => $this->serializedFields
             ]);
-            $this->assertHasCategory($response->json('id'), $category->id);
+            $id = $this->getIdFromResponse($response);
+            $this->assertHasCategory($id, $category->id);
+            $this->assertResource($response, new GenderResource(Gender::find($id)));
         }
-    }
-
-    protected function assertHasCategory($genderId, $categoryId){
-        $this->assertDatabaseHas('category_gender', [
-            'gender_id' => $genderId,
-            'category_id' => $categoryId
-        ]);
     }
 
     public function testDelete()
@@ -189,8 +225,58 @@ class GenderControllerTest extends TestCase
         $response->assertNotFound();
         
         $response = $this->get(route('genders.index'));
-        $response->assertJson([$this->gender->toArray()]);
+        $resource = GenderResource::collection(collect([$this->gender]));
+        $this->assertResource($response, $resource);
+    }
 
+    public function testHandleRelations(){
+        $gender = factory(Gender::class)->create();
+        $reflectionClass = new \ReflectionClass(GenderController::class);
+        $refletionMethod = $reflectionClass->getMethod('handleRelations');
+        $refletionMethod->setAccessible(true);
+        $controller = new GenderController;
+
+        $refletionMethod->invokeArgs(
+            $controller, 
+            [$gender, ['categories_id' => []]
+        ]);
+        $this->assertCount(0, $gender->categories);
+
+        $category = \factory(Category::class)->create();
+        $refletionMethod->invokeArgs(
+            $controller, 
+            [$gender, ['categories_id' => [$category->id]]
+        ]);
+
+        $gender->refresh();
+        $this->assertCount(1, $gender->categories);
+        $this->assertHasCategory($gender->id, $category->id);
+
+        $refletionMethod->invokeArgs(
+            $controller, 
+            [$this->gender, []
+        ]);
+        $this->gender->refresh();
+        $this->assertCount(1, $gender->categories);
+        $this->assertHasCategory($gender->id, $category->id);
+        
+        $refletionMethod->invokeArgs(
+            $controller, 
+            [$gender, ['categories_id' => []]
+        ]);
+        $gender->refresh();
+        $this->assertCount(0, $gender->categories);
+        $this->assertDatabaseMissing('category_gender', [
+            'category_id' => $category->id,
+            'gender_id' => $gender->id
+        ]);
+    }
+
+    protected function assertHasCategory($genderId, $categoryId){
+        $this->assertDatabaseHas('category_gender', [
+            'gender_id' => $genderId,
+            'category_id' => $categoryId
+        ]);
     }
 
     protected function routeStore(){
