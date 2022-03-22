@@ -31,10 +31,10 @@ jobs:
         run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www/backend
 
       - name: "Copiando backend .env"
-        run: docker exec -t micro-videos-app cp .env.example /var/www/backend/.env
+        run: docker exec -t micro-videos-app cp /var/www/backend/.env.example /var/www/backend/.env
 
       - name: "Copiando backend .env.testing"
-        run: docker exec -t micro-videos-app cp .env.testing.example /var/www/backend/.env.testing
+        run: docker exec -t micro-videos-app cp /var/www/backend/.env.testing.example /var/www/backend/.env.testing
 
       - name: "Rodando key:generate"
         run: docker exec -t micro-videos-app php /var/www/backend/artisan key:generate
