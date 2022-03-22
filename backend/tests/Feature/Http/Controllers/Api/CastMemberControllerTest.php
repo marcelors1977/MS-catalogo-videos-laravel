@@ -47,8 +47,10 @@ class CastMemberControllerTest extends TestCase
                 'meta' => []
             ]);
 
-            $resource = CastMemberResource::collection(collect([$this->castMember]));
-            $this->assertResource($response, $resource); 
+            $this->assertResource(
+                $response, 
+                CastMemberResource::collection(collect([$this->castMember]))
+            ); 
     }
 
     public function testShow()
@@ -62,8 +64,7 @@ class CastMemberControllerTest extends TestCase
             ]);
 
         $id = $this->getIdFromResponse($response);
-        $resource = new CastMemberResource(CastMember::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CastMemberResource(CastMember::find($id)));
     }
 
     public function testInvalidationData()
@@ -100,8 +101,7 @@ class CastMemberControllerTest extends TestCase
         ]);
 
         $id = $this->getIdFromResponse($response);
-        $resource = new CastMemberResource(CastMember::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CastMemberResource(CastMember::find($id)));
     }
 
     public function testUpdate()
@@ -116,8 +116,7 @@ class CastMemberControllerTest extends TestCase
         ]);
 
         $id = $this->getIdFromResponse($response);
-        $resource = new CastMemberResource(CastMember::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CastMemberResource(CastMember::find($id)));
     }
 
     public function testDelete()
@@ -131,8 +130,10 @@ class CastMemberControllerTest extends TestCase
         $response->assertNotFound();
         
         $response = $this->get(route('cast_members.index'));
-        $resource = CastMemberResource::collection(collect([$this->castMember]));
-        $this->assertResource($response, $resource);
+        $this->assertResource(
+            $response,
+            CastMemberResource::collection(collect([$this->castMember]))
+        );
 
         $this->assertNotNull(CastMember::withTrashed()->find($this->castMember->id));
     }

@@ -48,8 +48,10 @@ class CategoryControllerTest extends TestCase
                 'meta' => []
             ]);
 
-        $resource = CategoryResource::collection(collect([$this->category]));
-        $this->assertResource($response, $resource);    
+        $this->assertResource(
+            $response, 
+            CategoryResource::collection(collect([$this->category]))
+        );    
     }
 
     public function testShow()
@@ -63,8 +65,7 @@ class CategoryControllerTest extends TestCase
             ]);
 
         $id = $this->getIdFromResponse($response);
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CategoryResource(Category::find($id)));
     }
 
     public function testInvalidationData()
@@ -102,8 +103,8 @@ class CategoryControllerTest extends TestCase
         ];
         $this->assertStore($data, $data + ['description' => 'description' , 'is_active' => false]);
         $id = $this->getIdFromResponse($response);
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CategoryResource(Category::find($id))
+        );
     }
 
     public function testUpdate()
@@ -120,8 +121,7 @@ class CategoryControllerTest extends TestCase
             'data' => $this->serializedFields
         ]);
         $id = $this->getIdFromResponse($response);
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new CategoryResource(Category::find($id)));
 
         $data = [
             'name' => 'test_category_update',
@@ -149,8 +149,10 @@ class CategoryControllerTest extends TestCase
         $response->assertNotFound();
         
         $response = $this->get(route('categories.index'));
-        $resource = CategoryResource::collection(collect([$this->category]));
-        $this->assertResource($response, $resource);
+        $this->assertResource(
+            $response, 
+            CategoryResource::collection(collect([$this->category]))
+        );
     }
 
     protected function routeStore(){

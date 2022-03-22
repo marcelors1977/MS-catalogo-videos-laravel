@@ -60,9 +60,7 @@ class GenderControllerTest extends TestCase
                 'links' => [],
                 'meta' => []
             ]);
-
-            $resource = GenderResource::collection(collect([$this->gender]));
-            $this->assertResource($response, $resource); 
+        $this->assertResource($response, GenderResource::collection(collect([$this->gender]))); 
     }
 
     public function testShow()
@@ -76,8 +74,7 @@ class GenderControllerTest extends TestCase
             ])
             ->assertJsonFragment($this->gender->toArray());
 
-        $resource = new GenderResource($this->gender);
-        $this->assertResource($response, $resource);
+        $this->assertResource($response, new GenderResource($this->gender));
     }
 
     public function testInvalidationRequired(){
@@ -269,6 +266,37 @@ class GenderControllerTest extends TestCase
         $this->assertDatabaseMissing('category_gender', [
             'category_id' => $category->id,
             'gender_id' => $gender->id
+        ]);
+    }
+
+    public function testSyncCategories(){
+        $categoryId = \factory(Category::class,3)->create()->pluck('id')->toArray();
+        $sendData = [
+            'name' => 'teste',
+            'categories_id' => [$categoryId[0]]
+        ];
+        $response = $this->json('POST', $this->routeStore(), $sendData);
+        $this->assertDatabaseHas('category_gender', [
+            'category_id' => $categoryId[0],
+            'gender_id' => $this->getIdFromResponse($response)
+        ]);
+
+        $sendData = [
+            'name' => 'teste',
+            'categories_id' => [$categoryId[1], $categoryId[2]]
+        ];
+        $response = $this->json('PUT', $this->routeUpdate(), $sendData);
+           $this->assertDatabaseMissing('category_gender', [
+            'category_id' => $categoryId[0],
+            'gender_id' => $this->getIdFromResponse($response)
+        ]);
+        $this->assertDatabaseHas('category_gender', [
+            'category_id' => $categoryId[1],
+            'gender_id' => $this->getIdFromResponse($response)
+        ]);
+        $this->assertDatabaseHas('category_gender', [
+            'category_id' => $categoryId[2],
+            'gender_id' => $this->getIdFromResponse($response)
         ]);
     }
 
