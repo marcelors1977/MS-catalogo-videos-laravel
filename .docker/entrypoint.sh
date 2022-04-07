@@ -8,12 +8,12 @@ cd /var/www/frontend && npm install && cd ..
 
 ###BACK-END
 cd backend
-if [ ! -f ".env"]; then
+# if [ ! -f ".env"]; then
     cp .env.example .env
-fi
-if [ ! -f ".env.testing"]; then
+# fi
+# if [ ! -f ".env.testing"]; then
     cp .env.testing.example .env.testing
-fi
+# fi
 composer install
 # composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 php artisan config:cache 
