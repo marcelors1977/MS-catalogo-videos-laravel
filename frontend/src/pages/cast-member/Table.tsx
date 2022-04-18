@@ -4,10 +4,11 @@ import { httpVideo } from '../../util/http'
 import format from 'date-fns/format'
 import parseISO from 'date-fns/parseISO'
 
-enum TipoMember {
-    'Diretor' = 1,
-    'Ator',
-  }
+const CastMemberTypeMap = {
+    1: 'Diretor',
+    2: 'Ator'
+}
+
 
 const columnsDefinition: MUIDataTableColumn[] = [
     {
@@ -19,7 +20,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
         label: "Tipo",
         options: {
             customBodyRender(value) {
-              return TipoMember[value]
+              return CastMemberTypeMap[value ]
             } 
         }
     },

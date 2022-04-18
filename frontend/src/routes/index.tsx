@@ -1,8 +1,11 @@
 
 import { RouteProps } from "react-router-dom"
 import CategoryList from "../pages/category/PageList"
-import CastMemberList from "../pages/castMember/PageList"
-import GenderList from "../pages/genders/PageList"
+import CategoryCreate from "../pages/category/PageForm"
+import CastMemberList from "../pages/cast-member/PageList"
+import CastMemberCreate from "../pages/cast-member/PageForm"
+import GenderList from "../pages/gender/PageList"
+import GendeCreate from "../pages/gender/PageForm"
 import Dashboard from "../pages/Dashboard"
 
 export interface MyRouteProps extends RouteProps{
@@ -27,7 +30,7 @@ const routes: MyRouteProps[] = [
         name: 'categories.create',
         label: 'Criar categoria',
         path: '/categories/create',
-        element: <CategoryList/>
+        element: <CategoryCreate/>
     },
     {
         name: 'categories.edit',
@@ -38,14 +41,26 @@ const routes: MyRouteProps[] = [
     {
         name: 'cast_member.list',
         label: 'Listar Elenco',
-        path: '/cast_member',
+        path: '/cast_members',
         element: <CastMemberList/>
+    },
+    {
+        name: 'cast_member.create',
+        label: 'Criar Membro de Elenco',
+        path: '/cast_members/create',
+        element: <CastMemberCreate/>
     },
     {
         name: 'genders.list',
         label: 'Listar Generos',
         path: '/genders',
         element: <GenderList/>
+    },
+    {
+        name: 'genders.create',
+        label: 'Criar Gênero',
+        path: '/genders/create',
+        element: <GendeCreate/>
     }
 ]
 
