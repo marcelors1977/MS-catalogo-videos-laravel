@@ -10,6 +10,7 @@ const List = () => {
                 <Fab
                     title='Adicionar categoria'
                     size='small'
+                    // href='/categories/create'
                 >
                     <AddIcon />
                 </Fab>
