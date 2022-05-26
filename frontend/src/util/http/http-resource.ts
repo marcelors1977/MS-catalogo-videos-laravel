@@ -19,7 +19,7 @@ class HttpResource {
     }
 
     update<T = any>(id, data) {
-        return this.http.get<T>(`${this.resource}/${id}`, data)
+        return this.http.put<T>(`${this.resource}/${id}`, data)
     }
 
     delete<T = any>(id) {

@@ -1,12 +1,12 @@
 
 import { RouteProps } from "react-router-dom"
-import CategoryList from "../pages/category/PageList"
-import CategoryCreate from "../pages/category/PageForm"
-import CastMemberList from "../pages/cast-member/PageList"
-import CastMemberCreate from "../pages/cast-member/PageForm"
-import GenderList from "../pages/gender/PageList"
-import GendeCreate from "../pages/gender/PageForm"
 import Dashboard from "../pages/Dashboard"
+import CategoryList from "../pages/category/PageList"
+import CategoryForm from "../pages/category/PageForm"
+import CastMemberList from "../pages/cast-member/PageList"
+import CastMemberForm from "../pages/cast-member/PageForm"
+import GenderList from "../pages/gender/PageList"
+import GendeForm from "../pages/gender/PageForm"
 
 export interface MyRouteProps extends RouteProps{
     name: string
@@ -22,7 +22,7 @@ const routes: MyRouteProps[] = [
     },
     {
         name: 'categories.list',
-        label: 'Listar Categorias',
+        label: 'Categorias',
         path: '/categories',
         element: <CategoryList/>
     },
@@ -30,29 +30,35 @@ const routes: MyRouteProps[] = [
         name: 'categories.create',
         label: 'Criar categoria',
         path: '/categories/create',
-        element: <CategoryCreate/>
+        element: <CategoryForm/>
     },
     {
         name: 'categories.edit',
-        label: 'Editar Categorias',
+        label: 'Editar Categoria',
         path: '/categories/:id/edit',
-        element: <CategoryList/>
+        element: <CategoryForm/>
     },    
     {
         name: 'cast_member.list',
-        label: 'Listar Elenco',
-        path: '/cast_members',
+        label: 'Membros de elenco',
+        path: '/cast-members',
         element: <CastMemberList/>
     },
     {
         name: 'cast_member.create',
         label: 'Criar Membro de Elenco',
-        path: '/cast_members/create',
-        element: <CastMemberCreate/>
+        path: '/cast-members/create',
+        element: <CastMemberForm/>
+    },
+    {
+        name: 'cast_member.edit',
+        label: 'Editar Membro de Elenco',
+        path: '/cast-members/:id/edit',
+        element: <CastMemberForm/>
     },
     {
         name: 'genders.list',
-        label: 'Listar Generos',
+        label: 'Gêneros',
         path: '/genders',
         element: <GenderList/>
     },
@@ -60,7 +66,13 @@ const routes: MyRouteProps[] = [
         name: 'genders.create',
         label: 'Criar Gênero',
         path: '/genders/create',
-        element: <GendeCreate/>
+        element: <GendeForm/>
+    },
+    {
+        name: 'genders.edit',
+        label: 'Editar Gênero',
+        path: '/genders/:id/edit',
+        element: <GendeForm/>
     }
 ]
 

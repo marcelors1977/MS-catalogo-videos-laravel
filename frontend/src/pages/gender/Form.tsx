@@ -1,38 +1,23 @@
 import { 
     Box, 
     Button, 
-    Checkbox, 
-    FormControl, 
-    Input, 
-    InputLabel, 
+    Checkbox,
+    FormControlLabel,
     makeStyles, 
     MenuItem, 
-    Select, 
     TextField, 
-    Theme, 
-    ListItemText
+    Theme
 } from '@material-ui/core'
 import { ButtonProps } from '@material-ui/core/Button'
 import { useForm } from "react-hook-form"
 import * as React from 'react'
 import genderHttp from '../../util/http/gender-http'
 import categoryHttp from '../../util/http/category-http'
-
-interface Category {
-    id: string;
-    name: string;
-}
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from '../../util/vendor/yup'
+import { useParams } from 'react-router'
+import { useSnackbar } from 'notistack'
+import { useNavigate } from 'react-router-dom'
 
 const useStyles = makeStyles( (theme: Theme) => {
     return {
@@ -46,35 +31,104 @@ const useStyles = makeStyles( (theme: Theme) => {
     }
 })
 
+const validationSchema = yup.object().shape( {
+    name:           yup.string()
+                    .label('Nome')
+                    .required()
+                    .max(255),
+    categories_id: yup.array()
+                    .label('Categorias') 
+                    .nullable()
+                    .required()
+                    .min(1)
+})
+
 export const Form = () => {
 
     const classes = useStyles()
 
+    const {
+        register,
+        handleSubmit,
+        getValues,
+        setValue,
+        formState:{errors},
+        reset,
+        watch,
+    } = useForm({
+        defaultValues: {
+            name: "",
+            is_active: true,
+            categories_id: ""
+        },
+        resolver: yupResolver(validationSchema),
+    })
+
+    const snackBar = useSnackbar() 
+    const navigate = useNavigate()
+    const {id} = useParams()
+    const [categories, setCategories] = React.useState<any[]>([])
+    const [gender, setGender] = React.useState<{id: string} | null>( null) 
+    const [loading, setLoading] = React.useState<boolean>( false) 
+    const [isCategories, setIsCategories] = React.useState<boolean>(false)
+
     const buttonProps: ButtonProps = {
         className: classes.submit,
-        variant: 'outlined'
+        color: 'secondary',
+        variant: 'contained',
+        disabled: loading
     }
-
-    const [categories, setData] = React.useState<Category[]>([])
+    
     React.useEffect( () => {
         categoryHttp
-        .list<{ data: Category[]}>()
-        .then(({data}) => setData(data.data))
+        .list()
+        .then(({data}) => setCategories(data.data))
     }, [])
 
-    const [categoryName, setcategoryName] = React.useState<string[]>([]);
-
-    const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-      setcategoryName(event.target.value as string[]);
-    };
-
-    const {register, handleSubmit, getValues} = useForm()
-
-    function onSubmit(formData) {
-        console.log(formData)
+    React.useEffect( () => {
+        if(!id) {
+            return
+        }
+        setLoading(true)
         genderHttp
-            .create(formData)
-            .then( (response) => console.log(response))
+            .get(id)
+            .then(({data}) => {
+                setGender(data.data)
+                reset(data.data)
+            })
+            .finally( () => setLoading(false))
+    }, [id,reset])
+
+    function onSubmit(formData, event) {
+        setLoading(true)
+        const http = !gender
+        ? genderHttp.create(formData)
+        : genderHttp.update(gender.id, formData)     
+        
+        http
+        .then( ({data}) => {
+            snackBar.enqueueSnackbar(
+                "Gênero salva com sucesso", 
+                {variant: 'success'}
+            )
+            setTimeout( () => {
+                event 
+                ? (
+                        id 
+                            ? navigate(`/genders/${data.data.id}/edit`, { replace: true })
+                            : navigate(`/genders/${data.data.id}/edit`)
+                    )
+                : navigate('/genders')
+            })
+        })
+        .catch( (error) => {
+            console.log(error)
+            snackBar.enqueueSnackbar(
+                "Erro ao salvar Gênero",
+                { variant: "error"}
+            )
+        })
+        .finally( () => setLoading(false))
     }
 
     return (
@@ -84,39 +138,66 @@ export const Form = () => {
                 label="Nome"
                 fullWidth
                 variant='outlined'
+                disabled={loading}
+                error={errors.name !== undefined }
+                helperText={errors.name && errors.name.message}
+                InputLabelProps={{shrink: true}}
             />
-            <FormControl className={classes.formControl}>
-                <InputLabel id="mutiple-checkbox-label"> Categorias </InputLabel>
-                <Select
-                    {...register("categories_id")}
-                    labelId="mutiple-checkbox-label"
-                    id="mutiple-checkbox"
-                    multiple
-                    value={categoryName}
-                    onChange={handleChange}
-                    input={<Input />}
-                    renderValue={
-                        (selected) => categories.filter( name => (selected as string[]).includes(name.id))
-                                           .map( record => record.name)
-                                           .join(", ")
-                    }
-                    MenuProps={MenuProps}
-                >
-                {categories.map((name) => (
-                    <MenuItem key={name.id} value={name.id}>
-                    <Checkbox checked={categoryName.indexOf(name.id) > -1} />
-                    <ListItemText primary={name.name} />
-                    </MenuItem>
-                ))}
-                </Select>
-            </FormControl>
-            <Checkbox
-                {...register("is_active")}
-                defaultChecked
+            <TextField
+                select
+                {...register("categories_id")}
+                value={watch('categories_id') || [] } 
+                label="Categorias"
+                margin='normal'
+                variant='outlined'
+                disabled={loading}
+                error={ errors.categories_id !== undefined && !isCategories}
+                helperText={ errors.categories_id !== undefined && !isCategories && errors.categories_id.message}
+                fullWidth
+                 onChange={ (e) => {
+                    setValue('categories_id', e.target.value)
+                    setIsCategories(e.target.value.length !== 0 ? true : false)
+                }}
+                SelectProps={{
+                    multiple: true
+                }}
+            >
+                <MenuItem value={""} disabled>
+                    <em>Selecione categorias</em>
+                </MenuItem>
+                {
+                    categories.map(
+                        (category, key) => (
+                            <MenuItem key={key} value={category.id}>{category.name}
+                            </MenuItem>
+                        )
+                    )
+                }  
+            </TextField>
+            <FormControlLabel
+                disabled={loading}
+                control={
+                    <Checkbox
+                        name='is_active'
+                        onChange={
+                            () => {
+                                setValue( 'is_active', !getValues()['is_active'])
+                            }
+                        }
+                        checked={watch('is_active') }
+                    />
+                }
+                label={'Ativo?'}
+                labelPlacement={'end'}
             />
-            Ativo?
             <Box dir='rtl'>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues())} >Salvar</Button>
+                <Button 
+                color='primary'
+                {...buttonProps} 
+                onClick={() => onSubmit(getValues(), null)} 
+                >
+                    Salvar
+                </Button>
                 <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
             </Box>
         </form>
