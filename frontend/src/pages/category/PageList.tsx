@@ -6,11 +6,11 @@ import Table from './Table'
 const List = () => {
     return (
         <Page title='Listagem de categorias'>
-            <Box dir={'rtl'}>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar categoria'
                     size='small'
-                    // href='/categories/create'
+                    href='/categories/create'
                 >
                     <AddIcon />
                 </Fab>

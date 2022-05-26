@@ -7,7 +7,7 @@ import CustomBreadcrumbs from "./Breadcrumbs"
 export default function MyBreadcrumbs() {
    return ( 
      <Container>
-       <Box paddingBottom={1}>
+       <Box paddingTop={2} paddingBottom={1}>
           <Routes>
             <Route path="*" element={<CustomBreadcrumbs />}/>
             </Routes>

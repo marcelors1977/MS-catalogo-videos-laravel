@@ -9,10 +9,11 @@ import Table from './Table'
 const List = () => {
     return (
         <Page title='Listagem de membros do elenco'>
-            <Box dir={'rtl'}>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar membro do elenco'
                     size='small'
+                    href='/cast-members/create'
                 >
                     <AddIcon />
                 </Fab>
