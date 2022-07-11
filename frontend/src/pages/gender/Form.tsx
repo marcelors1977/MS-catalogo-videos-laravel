@@ -1,14 +1,9 @@
 import { 
-    Box, 
-    Button, 
     Checkbox,
     FormControlLabel,
-    makeStyles, 
     MenuItem, 
-    TextField, 
-    Theme
+    TextField
 } from '@material-ui/core'
-import { ButtonProps } from '@material-ui/core/Button'
 import { useForm } from "react-hook-form"
 import * as React from 'react'
 import genderHttp from '../../util/http/gender-http'
@@ -18,18 +13,9 @@ import * as yup from '../../util/vendor/yup'
 import { useParams } from 'react-router'
 import { useSnackbar } from 'notistack'
 import { useNavigate } from 'react-router-dom'
-
-const useStyles = makeStyles( (theme: Theme) => {
-    return {
-        formControl: {
-            margin: theme.spacing(1),
-            minWidth: 300
-        },
-        submit: {
-            margin: theme.spacing(1),
-        }
-    }
-})
+import { Category, Gender } from '../../util/models'
+import SubmitActions from '../../components/SubmitActions'
+import { DefaultForm } from '../../components/DefaultForm'
 
 const validationSchema = yup.object().shape( {
     name:           yup.string()
@@ -45,8 +31,6 @@ const validationSchema = yup.object().shape( {
 
 export const Form = () => {
 
-    const classes = useStyles()
-
     const {
         register,
         handleSubmit,
@@ -55,6 +39,7 @@ export const Form = () => {
         formState:{errors},
         reset,
         watch,
+        trigger
     } = useForm({
         defaultValues: {
             name: "",
@@ -67,46 +52,47 @@ export const Form = () => {
     const snackBar = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
-    const [categories, setCategories] = React.useState<any[]>([])
-    const [gender, setGender] = React.useState<{id: string} | null>( null) 
+    const [categories, setCategories] = React.useState<Category[]>([])
+    const [gender, setGender] = React.useState<Gender | null>( null) 
     const [loading, setLoading] = React.useState<boolean>( false) 
     const [isCategories, setIsCategories] = React.useState<boolean>(false)
-
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: 'contained',
-        disabled: loading
-    }
     
     React.useEffect( () => {
-        categoryHttp
-        .list()
-        .then(({data}) => setCategories(data.data))
-    }, [])
+        (async () => {
+           setLoading(true)
+           const promises = [categoryHttp.list({queryOptions: {all: ' '}})]
+           if (id) {
+               promises.push(genderHttp.get(id))
+           } 
+           try {
+               const [categoriesResponse, genderResponse] = await Promise.all(promises)
+               setCategories(categoriesResponse.data.data)
+               if (id) {
+                   setGender(genderResponse.data.data)
+                   reset( {
+                       ...genderResponse.data.data,
+                       categories_id: genderResponse.data.data.categories.map(category => category.id)
+                   })
+               }
+           } catch (error) {
+               console.error(error)
+               snackBar.enqueueSnackbar(
+                   'Não foi possível carregar as informações de gênero',
+                   {variant: 'error'}
+               )
+           } finally {
+               setLoading(false)
+           }
+        })()
+    }, [id,reset,snackBar])
 
-    React.useEffect( () => {
-        if(!id) {
-            return
-        }
+    async function onSubmit(formData, event) {
         setLoading(true)
-        genderHttp
-            .get(id)
-            .then(({data}) => {
-                setGender(data.data)
-                reset(data.data)
-            })
-            .finally( () => setLoading(false))
-    }, [id,reset])
-
-    function onSubmit(formData, event) {
-        setLoading(true)
-        const http = !gender
-        ? genderHttp.create(formData)
-        : genderHttp.update(gender.id, formData)     
-        
-        http
-        .then( ({data}) => {
+        try {
+            const http = !gender
+                ? genderHttp.create(formData)
+                : genderHttp.update(gender.id, formData)
+            const {data} = await http  
             snackBar.enqueueSnackbar(
                 "Gênero salva com sucesso", 
                 {variant: 'success'}
@@ -120,19 +106,19 @@ export const Form = () => {
                     )
                 : navigate('/genders')
             })
-        })
-        .catch( (error) => {
-            console.log(error)
+        } catch (error) {
+            console.error(error)
             snackBar.enqueueSnackbar(
                 "Erro ao salvar Gênero",
                 { variant: "error"}
             )
-        })
-        .finally( () => setLoading(false))
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs:12, md:6}} onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 {...register("name")}
                 label="Nome"
@@ -190,16 +176,15 @@ export const Form = () => {
                 label={'Ativo?'}
                 labelPlacement={'end'}
             />
-            <Box dir='rtl'>
-                <Button 
-                color='primary'
-                {...buttonProps} 
-                onClick={() => onSubmit(getValues(), null)} 
-                >
-                    Salvar
-                </Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>
-        </form>
+            <SubmitActions 
+                disableButtons={loading} 
+                handleSave={() => 
+                    trigger().then(
+                        isValid => {
+                            isValid && onSubmit(getValues(), null)
+                    })
+                }
+            />
+         </DefaultForm>
     )
 }

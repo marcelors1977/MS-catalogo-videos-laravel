@@ -1,14 +1,9 @@
 import * as React from 'react'
 import { 
-    Box, 
-    Button, 
     Checkbox, 
     FormControlLabel, 
-    makeStyles, 
-    TextField, 
-    Theme 
+    TextField,
 } from '@material-ui/core'
-import { ButtonProps } from '@material-ui/core/Button'
 import { useForm } from "react-hook-form"
 import categoryHttp from '../../util/http/category-http'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -16,14 +11,9 @@ import * as yup from '../../util/vendor/yup'
 import { useParams } from 'react-router'
 import { useNavigate } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
-
-const useStyles = makeStyles( (theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-})
+import { Category } from '../../util/models'
+import SubmitActions from '../../components/SubmitActions'
+import { DefaultForm } from '../../components/DefaultForm'
 
 const validationSchema = yup.object().shape( {
     name: yup.string()
@@ -34,16 +24,15 @@ const validationSchema = yup.object().shape( {
 
 export const Form = () => {
 
-    const classes = useStyles()
-
-    const {
+        const {
         register, 
         handleSubmit, 
         getValues,
         setValue,
         formState: { errors },
         reset,
-        watch
+        watch,
+        trigger
     } = useForm({
          defaultValues: {
             is_active: true,
@@ -56,15 +45,8 @@ export const Form = () => {
     const snackBar = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
-    const [category, setCategory] = React.useState<{id: string} | null>( null) 
+    const [category, setCategory] = React.useState<Category | null>( null) 
     const [loading, setLoading] = React.useState<boolean>( false) 
-
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: 'contained',
-        disabled: loading
-    }
 
     React.useEffect( () => {
         register("is_active")
@@ -74,50 +56,59 @@ export const Form = () => {
         if(!id) {
             return
         }
-        setLoading(true)
-        categoryHttp
-            .get(id)
-            .then(({data}) => {
-                setCategory(data.data)
-                reset(data.data)
-            })
-            .finally( () => setLoading(false))
-    }, [id,reset])
 
-    function onSubmit(formData, event) {
+        (async () => {
+            setLoading(true)
+            try {
+                const {data} = await categoryHttp.get(id)
+                setCategory(data.data)
+                reset(data.data)                    
+            } catch (error) {
+                console.error(error)
+                snackBar.enqueueSnackbar(
+                    'Não foi possível carregar as informações de categorias',
+                    {variant: 'error'}
+                )
+            } finally {
+                setLoading(false)
+            }
+        })()
+    }, [id, reset, snackBar])
+
+    async function onSubmit(formData, event) {
         setLoading(true)
-        const http = !category
-            ? categoryHttp.create(formData)
-            : categoryHttp.update(category.id, formData)
-        
-        http
-            .then( ({data}) => {
-                snackBar.enqueueSnackbar(
-                    "Categoria salva com sucesso", 
-                    {variant: 'success'}
-                )
-                setTimeout( () => {
-                    event 
-                    ? (
-                            id 
-                                ? navigate(`/categories/${data.data.id}/edit`, { replace: true })
-                                : navigate(`/categories/${data.data.id}/edit`)
-                        )
-                    : navigate('/categories')
-                })
+        try {
+            const http = !category
+                ? categoryHttp.create(formData)
+                : categoryHttp.update(category.id, formData)
+            const {data} = await http
+            snackBar.enqueueSnackbar(
+                "Categoria salva com sucesso", 
+                {variant: 'success'}
+            )
+            setTimeout( () => {
+                event 
+                ? (
+                        id 
+                            ? navigate(`/categories/${data.data.id}/edit`, { replace: true })
+                            : navigate(`/categories/${data.data.id}/edit`)
+                    )
+                : navigate('/categories')
             })
-            .catch( (error) => {
-                console.log(error)
-                snackBar.enqueueSnackbar(
-                    "Erro ao salvar categoria",
-                    { variant: "error"}
-                )
-            })
-            .finally( () => setLoading(false))
+            
+        } catch (error) {
+            console.error(error)
+            snackBar.enqueueSnackbar(
+                "Erro ao salvar categoria",
+                { variant: "error"}
+            )
+        } finally {
+            setLoading(false)
+        } 
     }
     
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs:12, md:6}} onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 {...register("name")}
                 label="Nome"
@@ -155,17 +146,15 @@ export const Form = () => {
                 label={'Ativo?'}
                 labelPlacement={'end'}
             />
-            <Box dir='rtl'>
-                <Button 
-                color='primary'
-                {...buttonProps} 
-                onClick={() => onSubmit(getValues(), null)} 
-                >
-                    Salvar
-                </Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>
-
-        </form>
+            <SubmitActions
+                disableButtons={loading} 
+                handleSave={() => 
+                    trigger().then(
+                        isValid => {
+                            isValid && onSubmit(getValues(), null)
+                    })
+                }
+            />            
+        </DefaultForm>
     )
 }

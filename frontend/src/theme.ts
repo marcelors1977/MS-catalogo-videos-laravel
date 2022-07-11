@@ -108,6 +108,10 @@ const theme = createTheme ( {
                 color: (palette!.primary as SimplePaletteColorOptions).main,
             }
         },
+        MUIDataTableBodyCell: {
+            root: {
+            }
+        }
     }
 })
 
