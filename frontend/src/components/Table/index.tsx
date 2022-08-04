@@ -28,7 +28,7 @@ const makeDefaultOptions = (debouncedSearchTime) : MUIDataTableOptions => ({
         filter: {
             all: "Todos",
             title: "FILTROS",
-            reset: "LIMPAS"
+            reset: "LIMPAR"
         },
         viewColumns: {
             title: "Ver Colunas",
