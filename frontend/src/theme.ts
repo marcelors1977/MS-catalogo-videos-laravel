@@ -111,6 +111,11 @@ const theme = createTheme ( {
         MUIDataTableBodyCell: {
             root: {
             }
+        },
+        MUIDataTableFilterList: {
+            root: {
+                marginBottom: '16px'
+            }
         }
     }
 })

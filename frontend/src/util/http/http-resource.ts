@@ -18,7 +18,7 @@ class HttpResource {
         const config:AxiosRequestConfig = {
             cancelToken: this.cancelList.token
         }
-        if (options && options.queryOptions) {
+        if (options && options.queryOptions) {         
             config.params = options.queryOptions
         }
         return this.http.get<T>(this.resource, config)
