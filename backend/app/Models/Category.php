@@ -24,4 +24,8 @@ class Category extends Model
         return $this->provideFilter(CategoryFilter::class);
     }
 
+    public function genders(){
+        return $this->belongsToMany(Gender::class)->withTrashed();
+    }
+
 }

@@ -7,21 +7,24 @@ use App\Models\Gender;
 use App\Models\Video;
 use illuminate\Http\Request;
 use App\Rules\ExistsRelationsBetween;
+use Illuminate\Database\Eloquent\Builder;
 
 
 class VideoController extends BasicCrudController
 {
     private $rules;
+    private $gendersWithCategories;
 
     public function __construct()
     {
+        $this->gendersWithCategories = false;
         $this->rules = [
             'title' => 'required|max:255',
             'description' => 'required',
-            'year_launched' => 'required|date_format:Y',
+            'year_launched' => 'required|date_format:Y|min:1',
             'opened' => 'boolean',
             'rating' => 'required|in:' . \join(',', Video::RATING_LIST),
-            'duration' => 'required|integer',
+            'duration' => 'required|integer|min:1',
             'video_file' => 'mimetypes:video/mp4|max:' . Video::VIDEO_FILE_MAX_SIZE,
             'thumb_file' => 'image|max:' . Video::THUMB_FILE_MAX_SIZE,
             'banner_file' => 'image|max:' . Video::BANNER_FILE_MAX_SIZE,
@@ -31,6 +34,11 @@ class VideoController extends BasicCrudController
                 'required',
                 'array',
                 'exists:genders,id,deleted_at,NULL'
+            ],
+            'cast_members_id' => [
+                'required',
+                'array',
+                'exists:cast_members,id,deleted_at,NULL'
             ]
         ];
     }
@@ -51,6 +59,14 @@ class VideoController extends BasicCrudController
         $obj = $this->findOrFail($id);
         $validatedDate = $this->validate($request, $this->rulesUpdate());
         $obj->update($validatedDate);
+        $resource = $this->resource();
+        return new $resource($obj);
+    }
+
+    public function show($id)
+    {
+        $this->gendersWithCategories = true;
+        $obj = $this->findOrFail($id);
         $resource = $this->resource();
         return new $resource($obj);
     }
@@ -83,5 +99,13 @@ class VideoController extends BasicCrudController
     protected function  resource()
     {
         return VideoResource::class;   
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        if ($this->gendersWithCategories){
+            return parent::queryBuilder()->with('genders.categories');
+        }
+        return parent::queryBuilder();
     }
 }

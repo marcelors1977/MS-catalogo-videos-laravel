@@ -2,16 +2,17 @@ import {setLocale} from 'yup'
 
 setLocale({
     mixed: {
-        required: '$'.concat('{path} é requirido')
+        required: '$'.concat('{path} é requirido'),
+        notType: '$'.concat('{path} é inválido')
     },
     string: {
         max: '$'.concat('{path} precisa ter no máximo $').concat('{max} caracteres')
     },
     number: {
-        min: '$'.concat('{path} precisa ser no mínimo $').concat('{max}')
+        min: '$'.concat('{path} precisa ser no mínimo $').concat('{min}')
     },
     array: {
-        min : '$'.concat('{path} deve ser umas lista de ao menos uma categoria selecionada')
+        min: 'Ao menos $'.concat('{min} $').concat('{path} deve(m) ser selecionado(s)')
     }
 })
 

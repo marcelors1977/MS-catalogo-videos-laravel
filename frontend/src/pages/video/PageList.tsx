@@ -1,16 +1,16 @@
-import { Page } from '../../components/Page'
 import { Box, Fab } from '@material-ui/core'
+import { Page } from '../../components/Page'
 import AddIcon from '@material-ui/icons/Add'
 import Table from './Table'
 
 const List = () => {
     return (
-        <Page title='Listagem de gêneros'>
+        <Page title='Listagem de Videos'>
             <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
-                    title='Adicionar gênero'
+                    title='Adicionar Video'
                     size='small'
-                    href='/genders/create'
+                    href='/videos/create'
                 >
                     <AddIcon />
                 </Fab>

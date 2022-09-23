@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\ModelFilters\VideoFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Video extends Model
 {
-    use SoftDeletes, Traits\Uuid, Traits\UploadFiles;
+    use SoftDeletes, Traits\Uuid, Traits\UploadFiles, Filterable;
 
     const RATING_LIST = ['L','10','12','14','16','18'];
 
@@ -94,6 +96,10 @@ class Video extends Model
         if (isset($attributes['genders_id'])){
             $video->genders()->sync($attributes['genders_id']);
         }
+
+        if (isset($attributes['cast_members_id'])) {
+            $video->castMembers()->sync($attributes['cast_members_id']);
+        }
     }
 
     public function categories(){
@@ -102,6 +108,11 @@ class Video extends Model
 
     public function genders(){
         return $this->belongsToMany(Gender::class)->withTrashed();
+    }
+
+    public function castMembers()
+    {
+        return $this->belongsToMany(CastMember::class)->withTrashed();
     }
 
     public function getVideoFileUrlAttribute()
@@ -126,5 +137,10 @@ class Video extends Model
 
     protected function uploadDir(){
        return $this->id; 
+    }
+
+    public function modelFilter()
+    {
+        return $this->provideFilter(VideoFilter::class);
     }
 }

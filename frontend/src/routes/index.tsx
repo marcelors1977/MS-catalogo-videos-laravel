@@ -7,6 +7,8 @@ import CastMemberList from "../pages/cast-member/PageList"
 import CastMemberForm from "../pages/cast-member/PageForm"
 import GenderList from "../pages/gender/PageList"
 import GendeForm from "../pages/gender/PageForm"
+import VideoList from "../pages/video/PageList"
+import VideoForm from "../pages/video/PageForm"
 
 export interface MyRouteProps extends RouteProps{
     name: string
@@ -73,6 +75,24 @@ const routes: MyRouteProps[] = [
         label: 'Editar Gênero',
         path: '/genders/:id/edit',
         element: <GendeForm/>
+    },
+    {
+        name: 'videos.list',
+        label: 'Videos',
+        path: '/videos',
+        element: <VideoList/>
+    },
+    {
+        name: 'videos.create',
+        label: 'Criar Video',
+        path: '/videos/create',
+        element: <VideoForm/>
+    },
+    {
+        name: 'videos.edit',
+        label: 'Editar Video',
+        path: '/videos/:id/edit',
+        element: <VideoForm/>
     }
 ]
 

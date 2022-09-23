@@ -18,14 +18,12 @@ import SubmitActions from '../../components/SubmitActions'
 import { DefaultForm } from '../../components/DefaultForm'
 
 const validationSchema = yup.object().shape( {
-    name:           yup.string()
+    name:          yup.string()
                     .label('Nome')
                     .required()
                     .max(255),
     categories_id: yup.array()
-                    .label('Categorias') 
-                    .nullable()
-                    .required()
+                    .label('Categorias')
                     .min(1)
 })
 
@@ -41,12 +39,12 @@ export const Form = () => {
         watch,
         trigger
     } = useForm({
-        defaultValues: {
-            name: "",
-            is_active: true,
-            categories_id: ""
-        },
         resolver: yupResolver(validationSchema),
+        defaultValues: {
+            categories_id: [] as string[],
+            name: "",
+            is_active: true
+        }
     })
 
     const snackBar = useSnackbar() 
@@ -55,8 +53,7 @@ export const Form = () => {
     const [categories, setCategories] = React.useState<Category[]>([])
     const [gender, setGender] = React.useState<Gender | null>( null) 
     const [loading, setLoading] = React.useState<boolean>( false) 
-    const [isCategories, setIsCategories] = React.useState<boolean>(false)
-    
+
     React.useEffect( () => {
         (async () => {
            setLoading(true)
@@ -85,7 +82,7 @@ export const Form = () => {
            }
         })()
     }, [id,reset,snackBar])
-
+    
     async function onSubmit(formData, event) {
         setLoading(true)
         try {
@@ -132,17 +129,16 @@ export const Form = () => {
             <TextField
                 select
                 {...register("categories_id")}
-                value={watch('categories_id') || [] } 
+                value={watch('categories_id') } 
                 label="Categorias"
                 margin='normal'
                 variant='outlined'
                 disabled={loading}
-                error={ errors.categories_id !== undefined && !isCategories}
-                helperText={ errors.categories_id !== undefined && !isCategories && errors.categories_id.message}
+                error={ errors.categories_id !== undefined }
+                helperText={ errors.categories_id !== undefined  && errors.categories_id['message']}
                 fullWidth
-                 onChange={ (e) => {
-                    setValue('categories_id', e.target.value)
-                    setIsCategories(e.target.value.length !== 0 ? true : false)
+                onChange={ (e) => {
+                    setValue('categories_id', Array.from( e.target.value ) )
                 }}
                 SelectProps={{
                     multiple: true
@@ -164,7 +160,7 @@ export const Form = () => {
                 disabled={loading}
                 control={
                     <Checkbox
-                        name='is_active'
+                        name='is_active' 
                         onChange={
                             () => {
                                 setValue( 'is_active', !getValues()['is_active'])
