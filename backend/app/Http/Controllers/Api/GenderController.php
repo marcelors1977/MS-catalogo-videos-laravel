@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\GenderResource;
 use App\Models\Gender;
+use Illuminate\Database\Eloquent\Builder;
 use illuminate\Http\Request;
 
 
@@ -70,5 +71,10 @@ class GenderController extends BasicCrudController
     protected function  resource()
     {
         return GenderResource::class;   
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        return parent::queryBuilder()->with('categories');
     }
 }

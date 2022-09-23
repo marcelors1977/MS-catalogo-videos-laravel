@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CastMember;
 use App\Models\Gender;
 use App\Models\Video;
 use Illuminate\Database\Eloquent\Model;
@@ -9,9 +10,11 @@ use Illuminate\Http\UploadedFile;
 class VideosTableSeeder extends Seeder
 {
     private $allGenders;
+    private $allCastMembers;
     private $relations = [
         'genders_id' => [],
-        'categories_id' => []
+        'categories_id' => [],
+        'cast_members_id' => []
     ];
     
     /**
@@ -26,6 +29,7 @@ class VideosTableSeeder extends Seeder
 
         $self = $this;
         $this->allGenders = Gender::all();
+        $this->allCastMembers = CastMember::all();
         Model::reguard();
 
         factory(\App\Models\Video::class,100)
@@ -59,6 +63,7 @@ class VideosTableSeeder extends Seeder
         $gendersId = $subGenders->pluck('id')->toArray();
         $this->relations['categories_id'] = $categoriesId;
         $this->relations['genders_id'] = $gendersId;
+        $this->relations['cast_members_id'] = $this->allCastMembers->random(3)->pluck('id')->toArray();
     }
 
     public function getImageFile() {

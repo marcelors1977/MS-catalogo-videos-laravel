@@ -32,8 +32,11 @@ class HttpResource {
         return this.http.post<T>(this.resource, data)
     }
 
-    update<T = any>(id, data) {
-        return this.http.put<T>(`${this.resource}/${id}`, data)
+    update<T = any>(id, data, isSpoofing?: boolean | undefined) {
+        if ( isSpoofing === true ) {
+            return this.http.post<T>(`${this.resource}/${id}`, data )    
+        }
+        return this.http.put<T>(`${this.resource}/${id}`, data )
     }
 
     delete<T = any>(id) {
