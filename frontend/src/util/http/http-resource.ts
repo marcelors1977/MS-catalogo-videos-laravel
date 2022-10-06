@@ -1,5 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource } from "axios";
 import axios from 'axios'
+import { serialize } from 'object-to-formdata'
 
 
 class HttpResource {
@@ -29,22 +30,46 @@ class HttpResource {
     }
 
     create<T = any>(data) {
-        return this.http.post<T>(this.resource, data)
+        let sendData = this.makeSendData(data)
+
+        return this.http.post<T>(this.resource, sendData)
     }
 
-    update<T = any>(id, data, isSpoofing?: boolean | undefined) {
-        if ( isSpoofing === true ) {
-            return this.http.post<T>(`${this.resource}/${id}`, data )    
-        }
-        return this.http.put<T>(`${this.resource}/${id}`, data )
+    update<T = any>(id, data, options?: {http?: {usePost: boolean}}): Promise<AxiosResponse<T>> {
+        let sendData = this.makeSendData(data)
+        const {http} = (options || {}) as any
+
+        return !options || !http || !http.usePost
+            ? this.http.put<T>(`${this.resource}/${id}`, sendData )
+            : this.http.post<T>(`${this.resource}/${id}`, sendData )
     }
 
     delete<T = any>(id) {
         return this.http.delete<T>(`${this.resource}/${id}`)
     }
 
+    deleteCollection<T = any>(queryParams) : Promise<AxiosResponse<T>> {
+        const config:AxiosRequestConfig = {}
+        if (queryParams) {
+            config['params'] = queryParams
+        }
+        return this.http.delete<T>(`${this.resource}`, config)
+    }
+
     isCancelledRequest(error) {
         return axios.isCancel(error)
+    }
+
+    private makeSendData(data) {
+        return this.containsFile(data) ? this.getFormData(data) : data
+    }
+
+    private getFormData(data) {
+        return serialize(data, {booleansAsIntegers: true})
+    }
+
+    private containsFile(data) {
+        return Object.values(data).filter( a => a instanceof File).length !== 0
     }
 }
 

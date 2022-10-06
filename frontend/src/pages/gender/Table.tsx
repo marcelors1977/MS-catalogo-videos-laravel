@@ -15,6 +15,7 @@ import * as yup from '../../util/vendor/yup'
 import  { Creators } from '../../store/filter'
 import { FilterResetButton } from '../../components/Table/FilterResetButton'
 import categoryHttp from '../../util/http/category-http'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -107,7 +108,7 @@ const Table = (props: Props) => {
     const subscribed = React.useRef( true )
     const [data, setData] = React.useState<Gender[]>([])
     const [, setCategories] = React.useState<Category[]>()
-    const [loading, setLoading] = React.useState<boolean>(false)
+    const loading = React.useContext(LoadingContext)
     const { 
         columns,
         filterManager,
@@ -196,7 +197,6 @@ const Table = (props: Props) => {
     ])
 
     async function getData() {
-        setLoading(true)
         try {
             const {data} = await genderHttp.list<ListResponse<Gender>>({
                 queryOptions: {
@@ -226,9 +226,7 @@ const Table = (props: Props) => {
                 'Não foi possível carregar as informações',
                 {variant: 'error'}
             )
-        } finally {
-            setLoading(false)
-        }
+        } 
     }
 
     return (

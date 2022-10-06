@@ -28,14 +28,24 @@ import UploadField from './UploadField'
 import GenderField from './GenderField'
 import CategoryField from './CategoryField'
 import CastMemberField from './CastMemberField'
-import { has, omit } from 'lodash'
-import { serialize } from 'object-to-formdata'
+import { omit, zipObject } from 'lodash'
+import { InputFileComponent } from '../../../components/InputFile'
+import { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
+import useSnackbarFormError from '../../../hooks/useSnackbarFormError'
+import LoadingContext from '../../../components/loading/LoadingContext'
 
 const useStyles = makeStyles( (theme: Theme) => ({
     cardUpload: {
         borderRadius: "4px",
         background: "#f5f5f5",
         margin: theme.spacing(2, 0)
+    },
+    cardOpened: {
+        borderRadius: "4px",
+        backgroundColor: "#f5f5f5"
+    },
+    cardContentOpened: {
+        paddingBottom: theme.spacing(2) + 'px !important'
     }
 }))
 
@@ -63,12 +73,12 @@ const validationSchema = yup.object().shape( {
             .min(1)
             .test({
                 message: 'Existem Gêneros sem categoria associada',
-                test(genders) {
-                    return  genders?.filter(
-                                gender => gender.categories.filter(
-                                    cat => this.parent.categories?.map(c => c.id).includes(cat.id)
-                                ).length !== 0
-                            ).length !== 0
+                test(value) {
+                    return value!.every (
+                        v => v.categories.filter(
+                            cat => this.parent.categories.map(c => c.id).includes(cat.id)
+                        ).length !==0
+                    )
                 }
             }),
     categories: yup.array()
@@ -88,10 +98,10 @@ export const Form = () => {
         handleSubmit, 
         getValues,
         setValue,
-        formState: { errors },
+        formState: { submitCount, errors },
         reset,
         watch,
-        trigger
+        trigger,
     } = useForm({
         resolver: yupResolver(validationSchema),
         defaultValues: {
@@ -111,32 +121,29 @@ export const Form = () => {
         }
     })
 
+    useSnackbarFormError(submitCount, errors)
+
     const classes = useStyles()
     const snackBar = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
     const subscribed = React.useRef( true )
     const [video, setVideo] = React.useState<Video | null>( null) 
-    const [loading, setLoading] = React.useState<boolean>( false)
     const theme = useTheme()
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'))
+    const castMemberRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
+    const genderRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
+    const categoryRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
+    const uploadsRef = React.useRef(
+        zipObject(fileFields, fileFields.map( () => React.createRef()))
+    ) as React.MutableRefObject<{ [key: string] : React.MutableRefObject<InputFileComponent>}>
+    const loading = React.useContext(LoadingContext)
 
     React.useEffect( () => {
-        // [
-        //     "opened",
-        //     "genders",
-        //     "categories",
-        //      ...fileFields
-        // ].forEach( element => register(element))
-        // register('opened')
-        // register('genders')
-        // register('cast_members')
-        // register('categories')
         register('thumb_file')
         register('banner_file')
         register('trailer_file')
         register('video_file')
-
     }, [register])
 
     React.useEffect( () => {
@@ -145,7 +152,6 @@ export const Form = () => {
         }
         subscribed.current = true;
         (async () => {
-            setLoading(true)
             try {
                 const {data} = await videoHttp.get(id)
                 if ( subscribed.current) {
@@ -158,8 +164,6 @@ export const Form = () => {
                     'Não foi possível carregar as informações de videos',
                     {variant: 'error'}
                 )
-            } finally {
-                setLoading(false)
             }
         })()
 
@@ -169,39 +173,32 @@ export const Form = () => {
     }, [id, reset, snackBar])
 
     async function onSubmit(formData, event) {
-        setLoading(true)
-        try {
-
-            formData['cast_members_id'] = formData['cast_members'].map( cast_member => cast_member.id)
-            formData['categories_id'] = formData['categories'].map( category => category.id)
-            formData['genders_id'] = formData['genders'].map( gender => gender.id)
-            if (id) {
-                formData['_method'] = 'PUT'
-            }
-
-            formData = omit(
-                formData,
-                [   'cast_members', 
-                'categories', 
-                'genders',
-                ...fileFields.filter( f => 
-                    has(formData,f) 
-                    ? formData[f] === null || formData[f]?.length === 0 
-                    : false
-                )
+        const filesFilled = fileFields.filter ( f => formData[f] instanceof File ? null : f )
+        const sendData = omit(
+            formData, 
+            ['cast_members', 
+            'genders', 
+            'categories',
+            ...filesFilled
             ]
-            )
+        )
 
-            const newFormaData = serialize(formData, {booleansAsIntegers: true})
+        sendData['cast_members_id'] = formData['cast_members'].map( cast_member => cast_member.id)
+        sendData['categories_id'] = formData['categories'].map( category => category.id)
+        sendData['genders_id'] = formData['genders'].map( gender => gender.id)
 
+        try {
             const http = !video
-                ? videoHttp.create(newFormaData)
-                : videoHttp.update(video.id, newFormaData, true)
+                ? videoHttp.create(sendData)
+                : videoHttp.update(video.id, {...sendData, _method: 'PUT'}, {http: {usePost: true}})
             const {data} = await http
             snackBar.enqueueSnackbar(
                 "Vídeo salva com sucesso", 
                 {variant: 'success'}
             )
+            
+            id && resetForm(video)
+
             setTimeout( () => {
                 event 
                 ? (
@@ -218,11 +215,20 @@ export const Form = () => {
                 "Erro ao salvar vídeo",
                 { variant: "error"}
             )
-        } finally {
-            setLoading(false)
         } 
     } 
-    
+
+    function resetForm(data) {
+        Object.keys(uploadsRef.current).forEach(
+            field => uploadsRef.current[field] && uploadsRef.current[field].current.clear()
+        )
+
+        castMemberRef.current && castMemberRef.current.clear()
+        genderRef.current && genderRef.current.clear()
+        categoryRef.current && categoryRef.current.clear()
+        reset(data)
+    }
+
     return (
         <DefaultForm 
             GridItemProps={{xs:12}} 
@@ -291,6 +297,7 @@ export const Form = () => {
                                 setCastMembers={(value) => setValue('cast_members', value, {shouldValidate: true})}
                                 errors={errors.cast_members}
                                 disabled={loading}
+
                             />
                         </Grid>
                     </Grid>
@@ -346,12 +353,14 @@ export const Form = () => {
                             </Typography>
                             <UploadField
                                 {...register('thumb_file')}
+                                ref={uploadsRef.current['thumb_file']}
                                 accept='image/*'
                                 label='Thumb'
                                 setValue={(value) => setValue('thumb_file' as any, value)}
                             />
                             <UploadField
                                 {...register('banner_file')}
+                                ref={uploadsRef.current['banner_file']}
                                 accept='image/*'
                                 label='Banner'
                                 setValue={(value) => setValue('banner_file' as any, value)}
@@ -365,12 +374,14 @@ export const Form = () => {
                             </Typography>
                             <UploadField
                                 {...register('trailer_file')}
+                                ref={uploadsRef.current['trailer_file']}
                                 accept='video/mp4'
                                 label='Trailer'
                                 setValue={(value) => setValue('trailer_file' as any, value)}
                             />
                             <UploadField
                                 {...register('video_file')}
+                                ref={uploadsRef.current['video_file']}
                                 accept='video/mp4'
                                 label='Principal'
                                 setValue={(value) => {
@@ -379,29 +390,32 @@ export const Form = () => {
                             />
                         </CardContent>
                     </Card>
-                    <br/>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                {...register('opened')}
-                                name='opened'
-                                color='primary'
-                                onChange={
-                                    () => {
-                                        setValue( 'opened', !getValues()['opened'])
-                                    }
+                    <Card className={classes.cardOpened}>
+                        <CardContent className={classes.cardContentOpened}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        {...register('opened')}
+                                        name='opened'
+                                        color='primary'
+                                        onChange={
+                                            () => {
+                                                setValue( 'opened', !getValues()['opened'])
+                                            }
+                                        }
+                                        checked={watch('opened') || false }
+                                        disabled={loading}
+                                    />
                                 }
-                                checked={watch('opened') || false }
-                                disabled={loading}
+                                label={
+                                    <Typography color='primary' variant='subtitle2'>
+                                        Quero que este contéudo aparece na seção lançamentos
+                                    </Typography>
+                                }
+                                labelPlacement={'end'}
                             />
-                        }
-                        label={
-                            <Typography color='primary' variant='subtitle2'>
-                                Quero que este contéudo aparece na seção lançamentos
-                            </Typography>
-                        }
-                        labelPlacement={'end'}
-                    />
+                        </CardContent>
+                    </Card>
                 </Grid>
             </Grid>
             <SubmitActions

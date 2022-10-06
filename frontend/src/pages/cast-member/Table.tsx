@@ -14,6 +14,7 @@ import * as yup from '../../util/vendor/yup'
 import  { Creators } from '../../store/filter'
 import { FilterResetButton } from '../../components/Table/FilterResetButton'
 import { invert } from 'lodash'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const castMemberNames = Object.values(CastMemberTypeMap)
 
@@ -94,7 +95,7 @@ const Table = (props: Props) => {
     const snackbar = useSnackbar()
     const subscribed = React.useRef( true )
     const [data, setData] = React.useState<CastMember[]>([])
-    const [loading, setLoading] = React.useState<boolean>(false)
+    const loading = React.useContext(LoadingContext)
     const { 
         columns,
         filterManager,
@@ -160,7 +161,6 @@ const Table = (props: Props) => {
     ])
 
     async function getData() {
-        setLoading(true)
         try {
             const {data} = await castMemberHttp.list<ListResponse<CastMember>>({
                 queryOptions: {
@@ -189,9 +189,7 @@ const Table = (props: Props) => {
                 'Não foi possível carregar as informações',
                 {variant: 'error'}
             )
-        } finally {
-            setLoading(false)
-        }
+        } 
     }
 
 

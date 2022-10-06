@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import { Category, Gender } from '../../util/models'
 import SubmitActions from '../../components/SubmitActions'
 import { DefaultForm } from '../../components/DefaultForm'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const validationSchema = yup.object().shape( {
     name:          yup.string()
@@ -52,11 +53,10 @@ export const Form = () => {
     const {id} = useParams()
     const [categories, setCategories] = React.useState<Category[]>([])
     const [gender, setGender] = React.useState<Gender | null>( null) 
-    const [loading, setLoading] = React.useState<boolean>( false) 
+    const loading = React.useContext(LoadingContext)
 
     React.useEffect( () => {
         (async () => {
-           setLoading(true)
            const promises = [categoryHttp.list({queryOptions: {all: ' '}})]
            if (id) {
                promises.push(genderHttp.get(id))
@@ -77,14 +77,11 @@ export const Form = () => {
                    'Não foi possível carregar as informações de gênero',
                    {variant: 'error'}
                )
-           } finally {
-               setLoading(false)
-           }
+           } 
         })()
     }, [id,reset,snackBar])
     
     async function onSubmit(formData, event) {
-        setLoading(true)
         try {
             const http = !gender
                 ? genderHttp.create(formData)
@@ -109,9 +106,7 @@ export const Form = () => {
                 "Erro ao salvar Gênero",
                 { variant: "error"}
             )
-        } finally {
-            setLoading(false)
-        }
+        } 
     }
 
     return (
