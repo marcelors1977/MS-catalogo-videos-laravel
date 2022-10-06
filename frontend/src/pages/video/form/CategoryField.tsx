@@ -1,7 +1,7 @@
 import { FormControl, FormControlProps, FormHelperText, makeStyles, Typography } from '@material-ui/core'
 import { grey } from '@material-ui/core/colors'
 import * as React from 'react'
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete'
+import AsyncAutocomplete, { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
 import { GridSelected } from '../../../components/GridSelected'
 import GridSelectedItem from '../../../components/GridSelectedItem'
 import useCollectionManager from '../../../hooks/useCollectionManager'
@@ -26,11 +26,17 @@ interface CategoryFieldProps {
     FormControlProps?: FormControlProps
 }
 
-const CategoryField: React.FC<CategoryFieldProps> = (props) => {
+export interface CategoryFieldComponent {
+    clear: () => void
+}
+
+const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProps>((props, ref) => {
     const {categories, setCategories, genders,  errors, disabled} = props
     const classes = useStyles()
     const autocompleteHttp = useHttpHandled()
     const {addItem, removeItem} = useCollectionManager(categories, setCategories)
+    const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent> 
+
     const feachOptions = (searchText) => autocompleteHttp(
         categoryHttp
             .list( {
@@ -39,19 +45,24 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
                     all: ""
             }
         })
-    ).then(data => data.data).catch(error => console.log(error, 'testeeee'))
+    ).then(data => data.data)
+
+    React.useImperativeHandle(ref, () => ({
+        clear: () => autocompleteRef.current.clear()
+    }))
 
     return (
         <>
             <AsyncAutocomplete 
+                ref={autocompleteRef}
                 fetchOptions={feachOptions}
                 AutocompleteProps={{
                     clearOnEscape: true,
                     freeSolo: false,
                     getOptionLabel: option => option.name,
                     isOptionEqualToValue: (option, value) => option.id === value.id,
-                    onChange: (event, value) => addItem(value),
-                    disabled: disabled === true || !genders.length
+                    onChange: (event, value) => {addItem(value)},
+                    disabled: !genders.length // avaliar esta lógica
                 }}
                 TextFieldProps={{
                     label: 'Categorias',
@@ -74,7 +85,7 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
                             return (
                                 <GridSelectedItem 
                                     key={key}
-                                    onDelete={() => {removeItem(category)}} 
+                                    onDelete={() => removeItem(category)} 
                                     xs={12}
                                 >
                                     <Typography noWrap={true}>
@@ -94,6 +105,6 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
             </FormControl>
         </>
     )
-}
+})
 
 export default CategoryField

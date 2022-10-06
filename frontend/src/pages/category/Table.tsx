@@ -13,6 +13,7 @@ import { Edit } from '@material-ui/icons'
 import { FilterResetButton } from '../../components/Table/FilterResetButton'
 import  { Creators } from '../../store/filter'
 import UseFilter from '../../hooks/useFilter'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -89,7 +90,6 @@ const Table = (props: Props) => {
     const snackbar = useSnackbar()
     const subscribed = React.useRef( true )
     const [data, setData] = React.useState<Category[]>([])
-    const [loading, setLoading] = React.useState<boolean>(false)
     const { 
         columns,
         filterManager,
@@ -105,6 +105,7 @@ const Table = (props: Props) => {
         rowsPerPageOptions: rowsPerPageOptions
     })
     const cleanFunSearch = filterManager.cleanSearchText(debounceFilterState.search)
+    const loading = React.useContext(LoadingContext)
 
     React.useEffect ( () => {
         subscribed.current = true;
@@ -122,7 +123,6 @@ const Table = (props: Props) => {
     ])
 
     async function getData() {
-            setLoading(true)
             try {
                 const {data} = await categoryHttp.list<ListResponse<Category>>( {
                     queryOptions: {
@@ -147,9 +147,7 @@ const Table = (props: Props) => {
                     'Não foi possível carregar informações',
                     {variant: 'error'}
                 )
-            } finally {
-                setLoading(false)
-            }
+            } 
         }
 
     return (

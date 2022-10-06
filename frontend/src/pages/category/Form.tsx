@@ -14,6 +14,7 @@ import { useSnackbar } from 'notistack'
 import { Category } from '../../util/models'
 import SubmitActions from '../../components/SubmitActions'
 import { DefaultForm } from '../../components/DefaultForm'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const validationSchema = yup.object().shape( {
     name: yup.string()
@@ -46,7 +47,7 @@ export const Form = () => {
     const navigate = useNavigate()
     const {id} = useParams()
     const [category, setCategory] = React.useState<Category | null>( null) 
-    const [loading, setLoading] = React.useState<boolean>( false) 
+    const loading = React.useContext(LoadingContext) 
 
     React.useEffect( () => {
         register("is_active")
@@ -58,7 +59,6 @@ export const Form = () => {
         }
 
         (async () => {
-            setLoading(true)
             try {
                 const {data} = await categoryHttp.get(id)
                 setCategory(data.data)
@@ -69,14 +69,11 @@ export const Form = () => {
                     'Não foi possível carregar as informações de categorias',
                     {variant: 'error'}
                 )
-            } finally {
-                setLoading(false)
-            }
+            } 
         })()
     }, [id, reset, snackBar])
 
     async function onSubmit(formData, event) {
-        setLoading(true)
         try {
             const http = !category
                 ? categoryHttp.create(formData)
@@ -102,8 +99,6 @@ export const Form = () => {
                 "Erro ao salvar categoria",
                 { variant: "error"}
             )
-        } finally {
-            setLoading(false)
         } 
     }
     

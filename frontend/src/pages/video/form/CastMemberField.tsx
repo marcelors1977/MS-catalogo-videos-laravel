@@ -1,6 +1,6 @@
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core'
 import * as React from 'react'
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete'
+import AsyncAutocomplete, { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
 import { GridSelected } from '../../../components/GridSelected'
 import GridSelectedItem from '../../../components/GridSelectedItem'
 import useCollectionManager from '../../../hooks/useCollectionManager'
@@ -15,7 +15,11 @@ interface CastMemberFieldProps {
     FormControlProps?: FormControlProps
 }
 
-const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
+export interface CastMemberFieldComponent {
+    clear: () => void
+}
+
+const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFieldProps> ((props, ref) => {
     const {
         cast_members, 
         setCastMembers, 
@@ -24,6 +28,8 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
     } = props
     const autocompleteHttp = useHttpHandled()
     const {addItem, removeItem} = useCollectionManager(cast_members, setCastMembers)
+    const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
+
     function feachOptions (searchText){
         return autocompleteHttp(
             castMemberHttp
@@ -35,9 +41,14 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
         ).then(data => data.data)
     }
 
+    React.useImperativeHandle(ref, () => ({
+        clear: () => autocompleteRef.current.clear()
+    }))
+
     return (
         <>
             <AsyncAutocomplete 
+                ref={autocompleteRef}
                 fetchOptions={feachOptions}
                 AutocompleteProps={{
                     clearOnEscape: true,
@@ -60,8 +71,9 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
             > 
                 <GridSelected>
                     {
-                        cast_members.map( (cast_member) => (
+                        cast_members.map( (cast_member, key) => (
                             <GridSelectedItem
+                                key={key}
                                 onDelete={() => {
                                     removeItem(cast_member)}} 
                                     xs={12}
@@ -79,6 +91,6 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
             </FormControl>
         </>
     )
-}
+})
 
 export default CastMemberField

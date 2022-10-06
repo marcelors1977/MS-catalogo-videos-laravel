@@ -30,7 +30,7 @@ const ratings: FormControlLabelProps[] = [
     {value: '18', control : <Radio color={"primary"}/>, label: <Rating rating={"18"}/>, labelPlacement: 'top'}
 ]
 
-export const RatingField: React.FC<RatingFieldProps> = (props) => {
+export const RatingField = React.forwardRef<RatingFieldProps, RatingFieldProps>((props, ref) => {
     const {value, setValue, disabled, errors} = props
     const [errType, setErrType] = React.useState<boolean>(true)
 
@@ -65,5 +65,5 @@ export const RatingField: React.FC<RatingFieldProps> = (props) => {
                 </FormHelperText>
         </FormControl>
     )
-}
+})
 

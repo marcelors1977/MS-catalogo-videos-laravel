@@ -18,6 +18,7 @@ import { useSnackbar } from 'notistack'
 import { CastMember } from '../../util/models'
 import SubmitActions from '../../components/SubmitActions'
 import { DefaultForm } from '../../components/DefaultForm'
+import LoadingContext from '../../components/loading/LoadingContext'
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -50,7 +51,8 @@ export const Form = () => {
     const { id } = useParams()
     const [castMember, setCastMember] = React.useState<CastMember | null>(null)
     const [errType, setErrType] = React.useState<boolean>(true)
-    const [loading, setLoading] = React.useState<boolean>( false) 
+    const loading = React.useContext(LoadingContext)
+
 
     React.useEffect(() => {
         register("type")
@@ -61,7 +63,6 @@ export const Form = () => {
             return
         }
         (async () => {
-            setLoading(true)
             try {
                 const {data} = await castMemberHttp.get(id)
                 setCastMember(data.data)
@@ -72,14 +73,11 @@ export const Form = () => {
                     "Não foi possível carregar informações de elenco",
                     { variant: "error"}
                 ) 
-            } finally {
-                setLoading(false)
-            }
+            } 
         })()
     }, [id, snackBar, reset])
 
     async function onSubmit(formData, event) {
-        setLoading(true)
         try {
             const http = !castMember
                 ? castMemberHttp.create(formData)
@@ -104,9 +102,7 @@ export const Form = () => {
                 "Erro ao salvar Membro do elenco",
                 { variant: "error"}
             )
-        } finally {
-            setLoading(false)
-        }
+        } 
     }
 
     return (

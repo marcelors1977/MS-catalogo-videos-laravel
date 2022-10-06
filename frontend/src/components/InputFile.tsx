@@ -3,8 +3,7 @@ import * as React from 'react'
 
 import { MutableRefObject, useRef } from 'react'
 
-
-export interface InputFileProps {
+export interface InputFileProps extends React.RefAttributes<InputFileComponent> {
     ButtonFile: React.ReactNode
     InputFileProps?: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
     TextFieldProps?: TextFieldProps
@@ -12,6 +11,7 @@ export interface InputFileProps {
 
 export interface InputFileComponent {
     openWindow: () => void
+    clear: () => void
 }
 
 const InputFile = React.forwardRef<InputFileComponent, InputFileProps>( (props, ref ) => {
@@ -55,7 +55,8 @@ const InputFile = React.forwardRef<InputFileComponent, InputFileProps>( (props, 
     }
 
     React.useImperativeHandle(ref, () => ({
-        openWindow: () => fileRef.current.click()
+        openWindow: () => fileRef.current.click(),
+        clear: () => setFilename("")
     }))
 
     return (

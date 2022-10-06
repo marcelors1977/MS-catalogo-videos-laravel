@@ -19,8 +19,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // categories pois Laravel traduz para  o Model Category
 Route::group(['namespace' =>  'Api'], function(){
-    Route::resource('categories', 'CategoryController', ['except' => ['create','edit']] );
-    Route::resource('genders', 'GenderController', ['except' => ['create','edit']] );
-    Route::resource('cast_members', 'CastMemberController', ['except' => ['create','edit']] );
-    Route::resource('videos', 'VideoController', ['except' => ['create','edit']] );
+    $exceptCreateAndEdit = [
+        'except' => ['create','edit']
+    ];
+    Route::resource('categories', 'CategoryController', $exceptCreateAndEdit );
+    Route::delete('categories', 'CategoryController@destroyCollection');
+    Route::resource('genders', 'GenderController', $exceptCreateAndEdit );
+    Route::delete('genders', 'GenderController@destroyCollection');
+    Route::resource('cast_members', 'CastMemberController', $exceptCreateAndEdit );
+    Route::delete('cast_members', 'CastMemberController@destroyCollection');
+    Route::resource('videos', 'VideoController', $exceptCreateAndEdit );
+    Route::delete('videos', 'VideoController@destroyCollection');
 });

@@ -1,6 +1,6 @@
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core'
 import * as React from 'react'
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete'
+import AsyncAutocomplete, { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
 import { GridSelected } from '../../../components/GridSelected'
 import GridSelectedItem from '../../../components/GridSelectedItem'
 import useCollectionManager from '../../../hooks/useCollectionManager'
@@ -18,7 +18,11 @@ interface GenderFieldProps {
     FormControlProps?: FormControlProps
 }
 
-const GenderField: React.FC<GenderFieldProps> = (props) => {
+export interface GenderFieldComponent {
+    clear: () => void
+}
+
+const GenderField = React.forwardRef<GenderFieldComponent, GenderFieldProps>((props, ref) => {
     const {
         genders, 
         setGenders, 
@@ -30,6 +34,7 @@ const GenderField: React.FC<GenderFieldProps> = (props) => {
     const autocompleteHttp = useHttpHandled()
     const {addItem, removeItem} = useCollectionManager(genders, setGenders)
     const {removeItem: removeCategory} = useCollectionManager(categories, setCategories)
+    const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
        
     function feachOptions (searchText){
         return autocompleteHttp(
@@ -42,9 +47,14 @@ const GenderField: React.FC<GenderFieldProps> = (props) => {
         ).then(data => data.data)
     }
 
+    React.useImperativeHandle(ref, () => ({
+        clear: () => autocompleteRef.current.clear()
+    }))
+
     return (
         <>
             <AsyncAutocomplete 
+                ref={autocompleteRef}
                 fetchOptions={feachOptions}
                 AutocompleteProps={{
                     clearOnEscape: true,
@@ -93,6 +103,6 @@ const GenderField: React.FC<GenderFieldProps> = (props) => {
             </FormControl>
         </>
     )
-}
+})
 
 export default GenderField

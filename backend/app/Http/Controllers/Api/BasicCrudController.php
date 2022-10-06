@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
 use illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Support\Facades\Validator;
 use ReflectionClass;
 
 abstract class BasicCrudController extends Controller
@@ -79,6 +80,29 @@ abstract class BasicCrudController extends Controller
         $obj = $this->findOrFail($id);
         $obj->delete();
         return response()->noContent(); // retorna 204 - que é sucesso mas não precisa retornar conteúdo
+    }
+
+    public function destroyCollection(Request $request)
+    {
+        $data = $this->validateIds($request);
+        $this->model()::whereIn('id', $data['ids'])->delete();
+        
+        return response()->noContent();
+    }
+
+    protected function validateIds(Request $request)
+    {
+        $model = $this->model();
+        $ids = \explode(',', $request->get('ids'));
+        $validator = Validator::make(
+            [
+                'ids' => $ids
+            ],
+            [
+                'ids' => 'required|exists:' . (new $model)->getTable() . ',id'
+            ]
+            );
+        return $validator->validate();
     }
 
     protected function queryBuilder(): Builder {
