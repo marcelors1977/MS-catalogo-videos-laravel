@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Grow from '@material-ui/core/Grow';
 import TextField from '@material-ui/core/TextField';
 import SearchIcon from '@material-ui/icons/Search';
@@ -30,7 +30,8 @@ const useStyles = makeStyles(
   { name: 'MUIDataTableSearch' },
 );
 
-const DebouncedTableSearch = ({ options, searchText, onSearch, onHide, debounceTime }) => {
+// const DebouncedTableSearch = ({ options, searchText, onSearch, onHide, debounceTime }) => {
+  const DebouncedTableSearch = ({ options, searchText, onSearch, onHide, debounceTime }) => {  
   const classes = useStyles();
   const [stateText, setStateText] = useState<any>({
     text: searchText
@@ -62,21 +63,21 @@ const DebouncedTableSearch = ({ options, searchText, onSearch, onHide, debounceT
   };
 
   const clearIconVisibility = options.searchAlwaysOpen ? 'hidden' : 'visible';
-
   let value = stateText.text
   const prevValue = usePrevious(searchText);  
-  if (searchText && searchText.value !== undefined && prevValue !== searchText ) {
-    value = searchText.value
-    if ( value ) {
-      
-    } else {
+  
+  if (searchText !== undefined && prevValue !== searchText ) {
+    value = searchText
+  }
+
+  useEffect( () => {
+    if (options.searchOpen === false){
       try {
           onHide();
       } catch (e) {
         
-      }
-    }
-  }
+      }    
+  }},[options.searchOpen, onHide])
 
   return (
     <Grow appear in={true} timeout={300}>

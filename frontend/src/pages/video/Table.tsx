@@ -100,7 +100,6 @@ const rowsPerPage = 15
 const rowsPerPageOptions = [15, 25, 50]
 
 const Table = (props: Props) => {
-
     const snackbar = useSnackbar()
     const subscribed = React.useRef( true )
     const [data, setData] = React.useState<Video[]>([])
@@ -207,14 +206,15 @@ const Table = (props: Props) => {
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
             <DeleteDialog open={openDeleteDialog} handleClose={deleteRows}/>
             <DefaultTable 
-                title="Listagem de categorias"
+                title="Listagem de videos"
                 columns={columns}
                 data={data}
                 loading={loading}
                 debouncedSearchTime={debounceSearchTime}
                 options= {{
                     serverSide: true,
-                    searchText: filterState.search as any,
+                    searchText: filterManager.cleanSearchText(filterState.search) as any,
+                    searchOpen: filterManager.isCloseSearchOpen(filterState.search) ,
                     page: filterState.pagination.page - 1,
                     rowsPerPage: filterState.pagination.per_page,
                     rowsPerPageOptions,

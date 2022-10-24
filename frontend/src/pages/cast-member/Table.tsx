@@ -203,7 +203,8 @@ const Table = (props: Props) => {
                 debouncedSearchTime={debounceSearchTime}
                 options= {{
                     serverSide: true,
-                    searchText: filterState.search as any,
+                    searchText: filterManager.cleanSearchText(filterState.search) as any,
+                    searchOpen: filterManager.isCloseSearchOpen(filterState.search),
                     page: filterState.pagination.page - 1,
                     rowsPerPage: filterState.pagination.per_page,
                     rowsPerPageOptions,

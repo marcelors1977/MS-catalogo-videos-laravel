@@ -33,6 +33,11 @@ import { InputFileComponent } from '../../../components/InputFile'
 import { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError'
 import LoadingContext from '../../../components/loading/LoadingContext'
+import SnackbarUpload from '../../../components/SnackbarUpload'
+import { useSelector } from 'react-redux'
+import { State as UploadState, Upload } from '../../../store/upload/types'
+import { useDispatch } from 'react-redux'
+import { Creators } from '../../../store/upload'
 
 const useStyles = makeStyles( (theme: Theme) => ({
     cardUpload: {
@@ -139,6 +144,54 @@ export const Form = () => {
     ) as React.MutableRefObject<{ [key: string] : React.MutableRefObject<InputFileComponent>}>
     const loading = React.useContext(LoadingContext)
 
+    const uploads = useSelector<UploadState, Upload[]>(
+        (state) => state.uploads
+    )
+
+    const dispatch = useDispatch()
+
+    React.useMemo(() => {
+
+        const obj: any = {
+            video: {
+                id: '1',
+                title: 'e ovento levou'
+            },
+            files: [
+                {
+                    file: new File([""], "teste.mp4"),
+                    fileField: "trailer_file"
+                },
+                {
+                    file: new File([""], "teste.mp4"),
+                    fileField: "video_file"
+                }
+            ]
+        }
+        dispatch(Creators.addUpload(obj)) 
+        setTimeout( () => {
+            
+            const progress1 = {
+                fileField: "trailer_file",
+                progress: 10,
+                video: {id: '1'}
+            } as any
+            dispatch(Creators.uploadProgress(progress1))
+            const progress2 = {
+                fileField: "video_file",
+                progress: 20,
+                video: {
+                    id: '1',
+                    title: 'teste'
+                }
+            } as any
+            dispatch(Creators.uploadProgress(progress2))
+            console.log(obj)
+        }, 1000)
+        console.log('Result -> ', uploads)
+    }, [true])
+ 
+
     React.useEffect( () => {
         register('thumb_file')
         register('banner_file')
@@ -147,6 +200,18 @@ export const Form = () => {
     }, [register])
 
     React.useEffect( () => {
+        snackBar.enqueueSnackbar( '', {
+            key: 'snackbar-upload',
+            persist: true,
+            anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'right'
+            },
+            content: (key, message) => {
+                const id = key as any
+                return <SnackbarUpload id={id}/>
+            }
+        })
         if(!id) {
             return
         }

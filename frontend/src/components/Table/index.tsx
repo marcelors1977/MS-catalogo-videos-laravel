@@ -66,7 +66,6 @@ export interface TableProps extends MUIDataTableProps {
 }
 
 const Table: React.FC<TableProps> = (props) => {
-
     function extractMuiDataTableColumns(columns: TableColumn[]): MUIDataTableColumn[] {
         setColumnsWidth(columns)
         return columns.map(column => omit(column, 'width'))
@@ -102,19 +101,17 @@ const Table: React.FC<TableProps> = (props) => {
     const isSmOrDown = useMediaQuery(theme.breakpoints.down('sm'))
 
     const defaultOptions = makeDefaultOptions(props.debouncedSearchTime)
-
     const newProps = merge( 
         {   options: cloneDeep(defaultOptions) }, 
         props,
         {columns: extractMuiDataTableColumns(props.columns)}
         )
-        
+      
     applyLoading()
     applyResponsive()
 
     const originalProps = getOriginalMuiDataTableProps()
-        
-    return (
+        return (
         <MuiThemeProvider theme={theme}>
             <MUIDataTable {...originalProps}/>
         </MuiThemeProvider>
