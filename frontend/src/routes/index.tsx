@@ -9,6 +9,7 @@ import GenderList from "../pages/gender/PageList"
 import GendeForm from "../pages/gender/PageForm"
 import VideoList from "../pages/video/PageList"
 import VideoForm from "../pages/video/PageForm"
+import UploadPage from "../pages/uploads"
 
 export interface MyRouteProps extends RouteProps{
     name: string
@@ -93,6 +94,12 @@ const routes: MyRouteProps[] = [
         label: 'Editar Video',
         path: '/videos/:id/edit',
         element: <VideoForm/>
+    },
+    {
+        name: 'uploads',
+        label: 'Uploads',
+        path: '/uploads',
+        element: <UploadPage/>
     }
 ]
 

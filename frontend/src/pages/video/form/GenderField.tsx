@@ -1,4 +1,4 @@
-import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core'
+import { FormControl, FormControlProps, FormHelperText, Typography, useTheme } from '@material-ui/core'
 import * as React from 'react'
 import AsyncAutocomplete, { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete'
 import { GridSelected } from '../../../components/GridSelected'
@@ -35,6 +35,7 @@ const GenderField = React.forwardRef<GenderFieldComponent, GenderFieldProps>((pr
     const {addItem, removeItem} = useCollectionManager(genders, setGenders)
     const {removeItem: removeCategory} = useCollectionManager(categories, setCategories)
     const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
+    const theme = useTheme()
        
     function feachOptions (searchText){
         return autocompleteHttp(
@@ -68,6 +69,9 @@ const GenderField = React.forwardRef<GenderFieldComponent, GenderFieldProps>((pr
                     error: errors !== undefined
                 }}
             />
+            <FormHelperText style={{height: theme.spacing(3)}}>
+                Escolha os gêneros do vídeo
+            </FormHelperText>
             <FormControl
                 fullWidth
                 margin='normal'

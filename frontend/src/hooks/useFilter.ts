@@ -129,6 +129,17 @@ export class FilterManager {
         return newText
     }
 
+    isCloseSearchOpen(text) {
+        if (text && text.value !== undefined ){
+            let newText = text.value
+            if (newText) {
+                return true
+            } else {
+                return false
+            }    
+        }
+    }
+
     replaceHistory() {
         const historyUrl = '?' + new URLSearchParams(this.formatSearchParams() as any)
             this.navigate(
