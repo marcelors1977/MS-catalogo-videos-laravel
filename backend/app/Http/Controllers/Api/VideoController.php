@@ -57,7 +57,10 @@ class VideoController extends BasicCrudController
     {
         $this->addExtraRule($request->categories_id);
         $obj = $this->findOrFail($id);
-        $validatedDate = $this->validate($request, $this->rulesUpdate());
+        $validatedDate = $this->validate(
+            $request, 
+            $request->isMethod('PUT') ? $this->rulesUpdate() : $this->rulesPatch()
+        );
         $obj->update($validatedDate);
         $resource = $this->resource();
         return new $resource($obj);

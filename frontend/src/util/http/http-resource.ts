@@ -35,13 +35,22 @@ class HttpResource {
         return this.http.post<T>(this.resource, sendData)
     }
 
-    update<T = any>(id, data, options?: {http?: {usePost: boolean}}): Promise<AxiosResponse<T>> {
+    update<T = any>(id, data, options?: {http?: {usePost: boolean}, config?: AxiosRequestConfig}): Promise<AxiosResponse<T>> {
         let sendData = this.makeSendData(data)
-        const {http} = (options || {}) as any
+        const {http, config} = (options || {}) as any
 
         return !options || !http || !http.usePost
-            ? this.http.put<T>(`${this.resource}/${id}`, sendData )
-            : this.http.post<T>(`${this.resource}/${id}`, sendData )
+            ? this.http.put<T>(`${this.resource}/${id}`, sendData, config )
+            : this.http.post<T>(`${this.resource}/${id}`, sendData, config )
+    }
+
+    partialUpdate<T = any>(id, data, options?: {http?: {usePost: boolean}, config?: AxiosRequestConfig}): Promise<AxiosResponse<T>> {
+        let sendData = this.makeSendData(data)
+        const {http, config} = (options || {}) as any
+
+        return !options || !http || !http.usePost
+            ? this.http.patch<T>(`${this.resource}/${id}`, sendData, config )
+            : this.http.post<T>(`${this.resource}/${id}`, sendData, config )
     }
 
     delete<T = any>(id) {

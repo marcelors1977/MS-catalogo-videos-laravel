@@ -36,7 +36,6 @@ export const RatingField = React.forwardRef<RatingFieldProps, RatingFieldProps>(
 
     return (
         <FormControl 
-                // className={classes.formControl} 
                 margin='normal'
                 error={errors !== undefined && errType}
                 disabled={disabled === true}

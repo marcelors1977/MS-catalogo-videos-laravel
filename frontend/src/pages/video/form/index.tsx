@@ -10,8 +10,7 @@ import {
     Theme,
     Card,
     CardContent,
-    makeStyles,
-    FormHelperText
+    makeStyles
 } from '@material-ui/core'
 import { useForm } from "react-hook-form"
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -34,8 +33,7 @@ import { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplet
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError'
 import LoadingContext from '../../../components/loading/LoadingContext'
 import SnackbarUpload from '../../../components/SnackbarUpload'
-import { useSelector } from 'react-redux'
-import { State as UploadState, Upload } from '../../../store/upload/types'
+import { FileInfo } from '../../../store/upload/types'
 import { useDispatch } from 'react-redux'
 import { Creators } from '../../../store/upload'
 
@@ -144,53 +142,7 @@ export const Form = () => {
     ) as React.MutableRefObject<{ [key: string] : React.MutableRefObject<InputFileComponent>}>
     const loading = React.useContext(LoadingContext)
 
-    const uploads = useSelector<UploadState, Upload[]>(
-        (state) => state.uploads
-    )
-
     const dispatch = useDispatch()
-
-    React.useMemo(() => {
-
-        const obj: any = {
-            video: {
-                id: '1',
-                title: 'e ovento levou'
-            },
-            files: [
-                {
-                    file: new File([""], "teste.mp4"),
-                    fileField: "trailer_file"
-                },
-                {
-                    file: new File([""], "teste.mp4"),
-                    fileField: "video_file"
-                }
-            ]
-        }
-        dispatch(Creators.addUpload(obj)) 
-        setTimeout( () => {
-            
-            const progress1 = {
-                fileField: "trailer_file",
-                progress: 10,
-                video: {id: '1'}
-            } as any
-            dispatch(Creators.uploadProgress(progress1))
-            const progress2 = {
-                fileField: "video_file",
-                progress: 20,
-                video: {
-                    id: '1',
-                    title: 'teste'
-                }
-            } as any
-            dispatch(Creators.uploadProgress(progress2))
-            console.log(obj)
-        }, 1000)
-        console.log('Result -> ', uploads)
-    }, [true])
- 
 
     React.useEffect( () => {
         register('thumb_file')
@@ -200,18 +152,6 @@ export const Form = () => {
     }, [register])
 
     React.useEffect( () => {
-        snackBar.enqueueSnackbar( '', {
-            key: 'snackbar-upload',
-            persist: true,
-            anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right'
-            },
-            content: (key, message) => {
-                const id = key as any
-                return <SnackbarUpload id={id}/>
-            }
-        })
         if(!id) {
             return
         }
@@ -238,13 +178,12 @@ export const Form = () => {
     }, [id, reset, snackBar])
 
     async function onSubmit(formData, event) {
-        const filesFilled = fileFields.filter ( f => formData[f] instanceof File ? null : f )
         const sendData = omit(
             formData, 
             ['cast_members', 
             'genders', 
             'categories',
-            ...filesFilled
+            ...fileFields
             ]
         )
 
@@ -255,13 +194,14 @@ export const Form = () => {
         try {
             const http = !video
                 ? videoHttp.create(sendData)
-                : videoHttp.update(video.id, {...sendData, _method: 'PUT'}, {http: {usePost: true}})
+                : videoHttp.update(video.id, sendData)
             const {data} = await http
             snackBar.enqueueSnackbar(
                 "Vídeo salva com sucesso", 
                 {variant: 'success'}
             )
             
+            uploadFiles(data.data)
             id && resetForm(video)
 
             setTimeout( () => {
@@ -292,6 +232,31 @@ export const Form = () => {
         genderRef.current && genderRef.current.clear()
         categoryRef.current && categoryRef.current.clear()
         reset(data)
+    }
+
+    function uploadFiles(video){
+        const files: FileInfo[] = fileFields
+                        .filter(fileField => getValues()[fileField] instanceof File ? getValues()[fileField] : null)
+                        .map(fileField => ({fileField, file: getValues()[fileField]}))
+
+        if (!files.length) {
+            return
+        }
+
+        dispatch(Creators.addUpload({video, files}))
+
+        snackBar.enqueueSnackbar( '', {
+            key: 'snackbar-upload',
+            persist: true,
+            anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'right'
+            },
+            content: (key, message) => {
+                const id = key as any
+                return <SnackbarUpload id={id}/>
+            }
+        })
     }
 
     return (
@@ -388,14 +353,6 @@ export const Form = () => {
                                errors={errors.categories} 
                                disabled={loading}                        
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormHelperText>
-                                Escolha os gêneros de vídeos
-                            </FormHelperText>
-                            <FormHelperText>
-                                Escolha pelo menos uma categoria de cada gênero
-                            </FormHelperText>
                         </Grid>
                 </Grid>
                 </Grid> 

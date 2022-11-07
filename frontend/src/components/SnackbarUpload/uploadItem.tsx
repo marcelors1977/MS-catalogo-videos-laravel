@@ -9,8 +9,11 @@ import {
     Tooltip
 } from "@material-ui/core"
 import MovieIcon from "@material-ui/icons/Movie"
-import UploadAction from "../UploadAction"
+import { Upload } from "../../store/upload/types"
+import UploadAction from "./UploadAction"
 import UploadProgress from "../UploadProgress"
+import { hasError } from "../../store/upload/getters"
+import { useState } from "react"
 
 const useStyles = makeStyles( (theme: Theme) => ({
     movieIcon: {
@@ -30,21 +33,30 @@ const useStyles = makeStyles( (theme: Theme) => ({
 }))
 
 interface UploadItemProps {
-
+    upload: Upload
 }
 
 const UploadItem: React.FC<UploadItemProps> = (props) => {
     const classes = useStyles()
+    const { upload } = props
+    const error = hasError(upload)
+    const [itemHover, setItemHover] = useState(false)
 
     return (
         <>
             <Tooltip
-                title={"Não foi possível fazer o upload, clique para mais detalhes"}
+            disableFocusListener
+            disableTouchListener
+                title={
+                    error ? "Não foi possível fazer o upload, clique para mais detalhes" : ""
+                }
                 placement={"left"}
             >
                 <ListItem
                     className={classes.listItem}
                     button
+                    onMouseOver={()=> setItemHover(true)}
+                    onMouseLeave={()=> setItemHover(true)}
                 >
                     <ListItemIcon className={classes.movieIcon}>
                         <MovieIcon/>
@@ -53,12 +65,12 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
                         className={classes.listItemText}
                         primary={
                             <Typography noWrap={true} variant={'subtitle2'} color={"inherit"}>
-                                E o vento levou!!!
+                                {upload.video.title}
                             </Typography>
                         }
                     />
-                    <UploadProgress size={30}/>
-                    <UploadAction/>
+                    <UploadProgress size={30} uploadOrFile={upload}/>
+                    <UploadAction upload={upload} hover={itemHover}/>
                 </ListItem>
             </Tooltip>
             <Divider component="li"/>

@@ -41,6 +41,7 @@ class Video extends Model
     ];
 
     public $incrementing = false;
+    protected $keyType = 'string';
     public static $filefields = [
         'video_file', 
         'thumb_file', 

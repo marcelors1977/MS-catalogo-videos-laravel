@@ -10,7 +10,8 @@ const listRoutes = [
     'categories.list',
     'cast_member.list',
     'genders.list',
-    'videos.list'
+    'videos.list',
+    'uploads'
 ]
 const menuRoutes = routes.filter(route => listRoutes.includes(route.name))
 
