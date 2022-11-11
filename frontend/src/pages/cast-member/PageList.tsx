@@ -7,13 +7,16 @@ import Table from './Table'
 
 
 const List = () => {
+    const URL = process.env.REACT_APP_BASENAME 
+    ? process.env.REACT_APP_BASENAME + '/cast-members/create'
+    : '/cast-members/create'
     return (
         <Page title='Listagem de membros do elenco'>
             <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar membro do elenco'
                     size='small'
-                    href='/cast-members/create'
+                    href={URL}
                 >
                     <AddIcon />
                 </Fab>

@@ -2,8 +2,10 @@ FROM php:7.3.33-fpm-alpine3.15
 
 WORKDIR /var/www
 
-RUN apk add --no-cache shadow openssl bash mysql-client nodejs npm git 
-RUN docker-php-ext-install pdo pdo_mysql
+RUN ls -la /etc/apk/repositories
+
+RUN apk add --no-cache shadow openssl bash mysql-client nodejs npm git libzip-dev
+RUN docker-php-ext-install pdo pdo_mysql zip
 
 RUN wget -q -O /usr/bin/wait-for https://raw.githubusercontent.com/eficode/wait-for/v2.2.3/wait-for && \
     chmod +x /usr/bin/wait-for

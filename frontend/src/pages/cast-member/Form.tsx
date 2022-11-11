@@ -46,7 +46,7 @@ export const Form = () => {
         resolver: yupResolver(validationSchema),
     })
 
-    const snackBar = useSnackbar()
+    const {enqueueSnackbar} = useSnackbar()
     const navigate = useNavigate()
     const { id } = useParams()
     const [castMember, setCastMember] = React.useState<CastMember | null>(null)
@@ -69,13 +69,13 @@ export const Form = () => {
                 reset(data.data)
             } catch (error) {
                 console.error(error)
-                snackBar.enqueueSnackbar(
+                enqueueSnackbar(
                     "Não foi possível carregar informações de elenco",
                     { variant: "error"}
                 ) 
             } 
         })()
-    }, [id, snackBar, reset])
+    }, [id, enqueueSnackbar, reset])
 
     async function onSubmit(formData, event) {
         try {
@@ -83,7 +83,7 @@ export const Form = () => {
                 ? castMemberHttp.create(formData)
                 : castMemberHttp.update(castMember.id, formData)
             const {data} = await http   
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Membro do elenco salvo com sucesso", 
                 {variant: 'success'}
             )
@@ -98,7 +98,7 @@ export const Form = () => {
             })    
         } catch (error) {
             console.error(error)
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Erro ao salvar Membro do elenco",
                 { variant: "error"}
             )

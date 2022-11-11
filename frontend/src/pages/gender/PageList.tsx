@@ -4,13 +4,16 @@ import AddIcon from '@material-ui/icons/Add'
 import Table from './Table'
 
 const List = () => {
+    const URL = process.env.REACT_APP_BASENAME 
+    ? process.env.REACT_APP_BASENAME + '/genders/create'
+    : '/genders/create'
     return (
         <Page title='Listagem de gêneros'>
             <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar gênero'
                     size='small'
-                    href='/genders/create'
+                    href={URL}
                 >
                     <AddIcon />
                 </Fab>

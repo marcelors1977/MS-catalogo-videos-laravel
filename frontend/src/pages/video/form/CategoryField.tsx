@@ -38,15 +38,17 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
     const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent> 
     const theme = useTheme()
 
-    const feachOptions = (searchText) => autocompleteHttp(
-        categoryHttp
-            .list( {
-                queryOptions: {
-                    genders: genders.map(gender => gender.id).join(','), 
-                    all: ""
-            }
-        })
-    ).then(data => data.data)
+    const feachOptions = React.useCallback((searchText) =>{
+        return autocompleteHttp(
+            categoryHttp
+                .list( {
+                    queryOptions: {
+                        genders: genders.map(gender => gender.id).join(','), 
+                        all: ""
+                }
+            })
+        ).then(data => data.data)
+    }, [autocompleteHttp, genders]) 
 
     React.useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

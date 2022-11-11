@@ -37,7 +37,7 @@ const GenderField = React.forwardRef<GenderFieldComponent, GenderFieldProps>((pr
     const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
     const theme = useTheme()
        
-    function feachOptions (searchText){
+    const feachOptions = React.useCallback((searchText) => {
         return autocompleteHttp(
             genderHttp
                 .list( {
@@ -46,7 +46,7 @@ const GenderField = React.forwardRef<GenderFieldComponent, GenderFieldProps>((pr
                 }
             })
         ).then(data => data.data)
-    }
+    }, [autocompleteHttp]) 
 
     React.useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

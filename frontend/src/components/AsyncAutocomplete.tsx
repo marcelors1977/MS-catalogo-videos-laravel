@@ -92,8 +92,7 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
         })()
 
         return () => { subscribed.current = true }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [freeSolo ? debounceSearchText : open])
+    }, [freeSolo, debounceSearchText, open, fetchOptions])
 
     React.useImperativeHandle( ref, () => ({
         clear: () => {
