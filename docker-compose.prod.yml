@@ -51,11 +51,11 @@ services:
         networks:
             - app-network
 
-    dockerize:
-        image: jwilder/dockerize
-        entrypoint: dockerize -wait tcp://db:3306 -timeout 30s
-        networks:
-            - app-network
+    # dockerize:
+    #     image: jwilder/dockerize
+    #     entrypoint: dockerize -wait tcp://db:3306 -timeout 30s
+    #     networks:
+    #         - app-network
 
 networks:
     app-network:
