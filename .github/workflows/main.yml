@@ -42,11 +42,14 @@ jobs:
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/backend/vendor/bin/phpunit -c /var/www/backend/phpunit.xml
 
+      - name: "Instalando dependências NPM"
+        run: docker exec -w /var/www/frontend -t micro-videos-app npm install
+
       - name: "Build frontend para testes"
         run: docker exec -w /var/www/frontend -t micro-videos-app npm run build-test
 
       - name: "Clear config-cache backend"
         run: docker exec -t micro-videos-app php /var/www/backend/artisan config:clear
 
-      - name: "Clear config-cache backend"
+      - name: "Executando testes frontend"
         run: docker exec -t micro-videos-app php /var/www/backend/artisan dusk --env=testing
