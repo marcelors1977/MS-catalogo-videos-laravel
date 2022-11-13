@@ -19,7 +19,7 @@ jobs:
         run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
 
       - name: "Aguardando DB"
-        run: docker exec -u root -t micro-videos-app wait-for db:3306 -t 120 --
+        run: docker exec -t micro-videos-app wait-for db:3306 -t 120 --
 
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
@@ -41,3 +41,12 @@ jobs:
 
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/backend/vendor/bin/phpunit -c /var/www/backend/phpunit.xml
+
+      - name: "Build frontend para testes"
+        run: docker exec -w /var/www/frontend -t micro-videos-app npm run build-test
+
+      - name: "Clear config-cache backend"
+        run: docker exec -t micro-videos-app php /var/www/backend/artisan config:clear
+
+      - name: "Clear config-cache backend"
+        run: docker exec -t micro-videos-app php /var/www/backend/artisan dusk --env=testing
