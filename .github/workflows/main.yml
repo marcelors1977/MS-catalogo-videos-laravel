@@ -24,12 +24,6 @@ jobs:
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
 
-      # - name: "Aguardando o DB"
-      #   run: docker-compose -f docker-compose.prod.yml up dockerize
-
-      - name: "Testando se MySql esta no ar"
-        run: docker exec -t micro-videos-db mysql -uroot -proot -e "SHOW DATABASES"
-
       - name: "Rodando composer"
         run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www/backend
 

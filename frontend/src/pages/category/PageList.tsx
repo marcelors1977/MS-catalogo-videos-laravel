@@ -7,7 +7,6 @@ const List = () => {
     const URL = process.env.REACT_APP_BASENAME 
         ? process.env.REACT_APP_BASENAME + '/categories/create'
         : '/categories/create'
-    console.log('env -> ', URL)
     return (
         <Page title='Listagem de categorias'>
             <Box dir={'rtl'} paddingBottom={2}>
