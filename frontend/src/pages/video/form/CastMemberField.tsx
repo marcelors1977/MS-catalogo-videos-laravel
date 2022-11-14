@@ -30,7 +30,7 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
     const {addItem, removeItem} = useCollectionManager(cast_members, setCastMembers)
     const autocompleteRef = React.useRef() as React.MutableRefObject<AsyncAutocompleteComponent>
 
-    function feachOptions (searchText){
+    const feachOptions = React.useCallback((searchText) => {
         return autocompleteHttp(
             castMemberHttp
                 .list( {
@@ -39,7 +39,7 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
                 }
             })
         ).then(data => data.data)
-    }
+    }, [autocompleteHttp]) 
 
     React.useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

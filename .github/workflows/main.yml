@@ -18,14 +18,11 @@ jobs:
       - name: "Iniciando os containeres"
         run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
 
+      - name: "Aguardando DB"
+        run: docker exec -t micro-videos-app wait-for db:3306 -t 120 --
+
       - name: "Chown in /var/www"
         run: docker exec -u root -t micro-videos-app chown -R www-data:www-data /var/www
-     
-      - name: "Aguardando o DB"
-        run: docker-compose -f docker-compose.prod.yml up dockerize
-
-      - name: "Testando se MySql esta no ar"
-        run: docker exec -t micro-videos-db mysql -uroot -proot -e "SHOW DATABASES"
 
       - name: "Rodando composer"
         run: docker exec -t micro-videos-app composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www/backend
@@ -44,3 +41,21 @@ jobs:
 
       - name: "Rodando Phpunit"
         run: docker exec -t micro-videos-app php /var/www/backend/vendor/bin/phpunit -c /var/www/backend/phpunit.xml
+
+      - name: "Instalando dependências NPM"
+        run: docker exec -w /var/www/frontend -t micro-videos-app npm install
+
+      - name: "Build frontend para testes"
+        run: docker exec -w /var/www/frontend -t micro-videos-app npm run build-test
+
+      - name: "Clear config-cache backend"
+        run: docker exec -t micro-videos-app php /var/www/backend/artisan config:clear
+
+      - name: "Copiando .env.dusk.testing"
+        run: docker exec -t micro-videos-app cp /var/www/backend/.env.dusk.testing.example /var/www/backend/.env.dusk.testing
+
+      - name: "Iniciando Chromedriver"
+        run: docker exec -t micro-videos-app nohup bash -c 'chromedriver > /dev/null 2>&1 &'
+
+      - name: "Executando testes frontend"
+        run: docker exec -t -w /var/www/backend micro-videos-app php artisan dusk --env=testing

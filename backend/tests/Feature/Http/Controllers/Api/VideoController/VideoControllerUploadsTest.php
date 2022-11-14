@@ -57,7 +57,7 @@ class VideoControllerUploadsTest extends BaseVideoControllerTestCase
     public function testUpdateWithFiles(){
         Storage::fake();
         $files = $this->getFiles();
-        $response = $this->json('PUT', $this->routeUpdate(), $this->sendData + $files);
+        $response = $this->json('PATCH', $this->routeUpdate(), $this->sendData + $files);
 
         $response->assertStatus(200);
         $this->assertFilesExistsInStorage($response, $files);

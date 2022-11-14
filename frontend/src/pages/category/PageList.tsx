@@ -4,13 +4,16 @@ import AddIcon from '@material-ui/icons/Add'
 import Table from './Table'
 
 const List = () => {
+    const URL = process.env.REACT_APP_BASENAME 
+        ? process.env.REACT_APP_BASENAME + '/categories/create'
+        : '/categories/create'
     return (
         <Page title='Listagem de categorias'>
             <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar categoria'
                     size='small'
-                    href='/categories/create'
+                    href= {URL}
                 >
                     <AddIcon />
                 </Fab>

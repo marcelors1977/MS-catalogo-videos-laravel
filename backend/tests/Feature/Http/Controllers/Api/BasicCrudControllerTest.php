@@ -37,7 +37,15 @@ class BasicCrudControllerTest extends TestCase
 
     public function testIndex(){
         $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
-        $dataArray = $this->controller->index()->response()->getData(true);
+        $request = \Mockery::mock(Request::class)
+            ->makePartial();
+        $request
+            ->shouldReceive('get')
+            ->andReturn('15');
+        $request
+            ->shouldReceive('all');
+
+        $dataArray = $this->controller->index($request)->response()->getData(true);
         
         $this->assertEquals([$category->toArray()], $dataArray['data']);
 
@@ -89,11 +97,16 @@ class BasicCrudControllerTest extends TestCase
 
     public function testUpdate(){
         $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
-        $request = \Mockery::mock(Request::class);
+        $request = \Mockery::mock(Request::class)
+            ->makePartial();
         $request
             ->shouldReceive('all')
             ->once()
             ->andReturn(['name' => 'test_updated', 'description' => 'test_description_updated']);
+        $request
+            ->shouldReceive('isMethod')
+            ->andReturn('PUT');
+
         $obj = $this->controller->update($request, $category->id);
         $data = $obj->response()->getData(true);
   

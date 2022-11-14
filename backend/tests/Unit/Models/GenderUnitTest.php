@@ -6,6 +6,7 @@ use App\Models\Gender;
 use PHPUnit\Framework\TestCase;
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use EloquentFilter\Filterable;
 
 class GenderUnitTest extends TestCase
 {
@@ -25,7 +26,7 @@ class GenderUnitTest extends TestCase
     
     public function testIfUseTraits()
     {
-        $traits = [ SoftDeletes::class, Uuid::class ];
+        $traits = [ SoftDeletes::class, Uuid::class, Filterable::class ];
         $genderTraits = array_keys(class_uses(Gender::class));
         $this->assertEquals($traits, $genderTraits);
     }

@@ -5,13 +5,16 @@ import Table from './Table'
 import { forwardRef } from 'react'
 
 const List = forwardRef<any,any>((props, ref) => {
+    const URL = process.env.REACT_APP_BASENAME 
+    ? process.env.REACT_APP_BASENAME + '/videos/create'
+    : '/videos/create'
     return (
         <Page title='Listagem de Videos'>
             <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title='Adicionar Video'
                     size='small'
-                    href='/videos/create'
+                    href={URL}
                 >
                     <AddIcon />
                 </Fab>

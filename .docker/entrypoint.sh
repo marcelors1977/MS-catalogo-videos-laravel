@@ -14,10 +14,12 @@ cd backend
 # if [ ! -f ".env.testing"]; then
     cp .env.testing.example .env.testing
 # fi
+cp .env.dusk.testing.example .env.dusk.testing
 composer install
 # composer install --no-interaction --prefer-dist --optimize-autoloader -d /var/www
 php artisan config:cache 
 php artisan key:generate
 php artisan migrate
 
+chromedriver &
 php-fpm

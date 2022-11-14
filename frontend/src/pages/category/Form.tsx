@@ -43,7 +43,7 @@ export const Form = () => {
         resolver: yupResolver(validationSchema),
     })
 
-    const snackBar = useSnackbar() 
+    const {enqueueSnackbar} = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
     const [category, setCategory] = React.useState<Category | null>( null) 
@@ -65,13 +65,13 @@ export const Form = () => {
                 reset(data.data)                    
             } catch (error) {
                 console.error(error)
-                snackBar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Não foi possível carregar as informações de categorias',
                     {variant: 'error'}
                 )
             } 
         })()
-    }, [id, reset, snackBar])
+    }, [id, reset, enqueueSnackbar])
 
     async function onSubmit(formData, event) {
         try {
@@ -79,7 +79,7 @@ export const Form = () => {
                 ? categoryHttp.create(formData)
                 : categoryHttp.update(category.id, formData)
             const {data} = await http
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Categoria salva com sucesso", 
                 {variant: 'success'}
             )
@@ -95,7 +95,7 @@ export const Form = () => {
             
         } catch (error) {
             console.error(error)
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Erro ao salvar categoria",
                 { variant: "error"}
             )

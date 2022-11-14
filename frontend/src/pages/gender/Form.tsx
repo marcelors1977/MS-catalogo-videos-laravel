@@ -48,7 +48,7 @@ export const Form = () => {
         }
     })
 
-    const snackBar = useSnackbar() 
+    const {enqueueSnackbar} = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
     const [categories, setCategories] = React.useState<Category[]>([])
@@ -73,13 +73,13 @@ export const Form = () => {
                }
            } catch (error) {
                console.error(error)
-               snackBar.enqueueSnackbar(
+               enqueueSnackbar(
                    'Não foi possível carregar as informações de gênero',
                    {variant: 'error'}
                )
            } 
         })()
-    }, [id,reset,snackBar])
+    }, [id,reset, enqueueSnackbar])
     
     async function onSubmit(formData, event) {
         try {
@@ -87,7 +87,7 @@ export const Form = () => {
                 ? genderHttp.create(formData)
                 : genderHttp.update(gender.id, formData)
             const {data} = await http  
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Gênero salva com sucesso", 
                 {variant: 'success'}
             )
@@ -102,7 +102,7 @@ export const Form = () => {
             })
         } catch (error) {
             console.error(error)
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Erro ao salvar Gênero",
                 { variant: "error"}
             )

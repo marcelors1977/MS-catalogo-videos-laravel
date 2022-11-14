@@ -87,12 +87,13 @@ const rowsPerPageOptions = [15, 25, 50]
 
 const Table = (props: Props) => {
 
-    const snackbar = useSnackbar()
+    const {enqueueSnackbar} = useSnackbar()
     const subscribed = React.useRef( true )
     const [data, setData] = React.useState<Category[]>([])
     const { 
         columns,
         filterManager,
+        cleanSearchText,
         filterState,
         debounceFilterState,
         dispatch,
@@ -104,33 +105,19 @@ const Table = (props: Props) => {
         rowsPerPage: rowsPerPage,
         rowsPerPageOptions: rowsPerPageOptions
     })
-    const cleanFunSearch = filterManager.cleanSearchText(debounceFilterState.search)
+    const cleanFunSearch = cleanSearchText(debounceFilterState.search)
     const loading = React.useContext(LoadingContext)
 
-    React.useEffect ( () => {
-        subscribed.current = true;
-        filterManager.pushHistory()
-        getData()
-        return () => {
-            subscribed.current = true;
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        cleanFunSearch,
-        debounceFilterState.pagination.page,
-        debounceFilterState.pagination.per_page,
-        debounceFilterState.order,
-    ])
-
-    async function getData() {
+    const getData = React.useCallback(
+        async ({ search, page, per_page, sort, dir }) => {
             try {
                 const {data} = await categoryHttp.list<ListResponse<Category>>( {
                     queryOptions: {
-                        search: filterManager.cleanSearchText(filterState.search),
-                        page: filterState.pagination.page,
-                        per_page: filterState.pagination.per_page,
-                        sort: filterState.order.sort,
-                        dir: filterState.order.dir
+                        search,
+                        page,
+                        per_page,
+                        sort,
+                        dir
                     }
                 })
                 if (subscribed.current) {
@@ -143,12 +130,32 @@ const Table = (props: Props) => {
                     
                     return
                 }
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Não foi possível carregar informações',
                     {variant: 'error'}
                 )
             } 
-        }
+        }, [setTotalRecords, enqueueSnackbar])
+
+        React.useEffect ( () => {
+            subscribed.current = true;
+            getData({
+                search: cleanFunSearch,
+                page: debounceFilterState.pagination.page,
+                per_page: debounceFilterState.pagination.per_page,
+                sort: debounceFilterState.order.sort,
+                dir: debounceFilterState.order.dir
+            })
+            return () => {
+                subscribed.current = true;
+            }
+        }, [
+            getData,
+            cleanFunSearch,
+            debounceFilterState.pagination.page,
+            debounceFilterState.pagination.per_page,
+            debounceFilterState.order,
+        ])
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
@@ -160,7 +167,7 @@ const Table = (props: Props) => {
                 debouncedSearchTime={debounceSearchTime}
                 options= {{
                     serverSide: true,
-                    searchText: filterManager.cleanSearchText(filterState.search) as any,
+                    searchText: cleanSearchText(filterState.search) as any,
                     searchOpen: filterManager.isCloseSearchOpen(filterState.search),
                     page: filterState.pagination.page - 1,
                     rowsPerPage: filterState.pagination.per_page,

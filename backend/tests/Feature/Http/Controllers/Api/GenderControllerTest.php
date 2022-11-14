@@ -186,14 +186,19 @@ class GenderControllerTest extends TestCase
             ]
         ];
 
+        $serializedFieldsNoCategories = \array_filter($this->serializedFields, function($item,$key) {
+            return $key !== 'categories' ? $item : '';
+        },ARRAY_FILTER_USE_BOTH );
+
         foreach ($data as $key => $value) {
             $response = $this->assertStore(
                 $value['send_data'], 
                 $value['test_data'] + ['deleted_at' => null]
-            );   
+            ); 
             $response->assertJsonStructure([
-                'data' => $this->serializedFields
+                'data' => $serializedFieldsNoCategories
             ]);
+
             $id = $this->getIdFromResponse($response);
             $this->assertHasCategory($id, $category->id);
             $this->assertResource($response, new GenderResource(Gender::find($id)));
@@ -203,7 +208,7 @@ class GenderControllerTest extends TestCase
                 $value['test_data'] + ['deleted_at' => null]
             );
             $response->assertJsonStructure([
-                'data' => $this->serializedFields
+                'data' => $serializedFieldsNoCategories
             ]);
             $id = $this->getIdFromResponse($response);
             $this->assertHasCategory($id, $category->id);

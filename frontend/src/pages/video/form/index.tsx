@@ -127,7 +127,7 @@ export const Form = () => {
     useSnackbarFormError(submitCount, errors)
 
     const classes = useStyles()
-    const snackBar = useSnackbar() 
+    const {enqueueSnackbar} = useSnackbar() 
     const navigate = useNavigate()
     const {id} = useParams()
     const subscribed = React.useRef( true )
@@ -143,6 +143,17 @@ export const Form = () => {
     const loading = React.useContext(LoadingContext)
 
     const dispatch = useDispatch()
+
+    const resetForm = React.useCallback((data) => {
+        Object.keys(uploadsRef.current).forEach(
+            field => uploadsRef.current[field] && uploadsRef.current[field].current.clear()
+        )
+
+        castMemberRef.current && castMemberRef.current.clear()
+        genderRef.current && genderRef.current.clear()
+        categoryRef.current && categoryRef.current.clear()
+        reset(data)
+    }, [castMemberRef, genderRef, categoryRef, reset, uploadsRef ])
 
     React.useEffect( () => {
         register('thumb_file')
@@ -161,11 +172,11 @@ export const Form = () => {
                 const {data} = await videoHttp.get(id)
                 if ( subscribed.current) {
                     setVideo(data.data)
-                    reset(data.data)  
+                    resetForm(data.data)  
                 }
             } catch (error) {
                 console.error(error)
-                snackBar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Não foi possível carregar as informações de videos',
                     {variant: 'error'}
                 )
@@ -175,7 +186,7 @@ export const Form = () => {
         return () => {
             subscribed.current = false
         }
-    }, [id, reset, snackBar])
+    }, [id, resetForm, enqueueSnackbar])
 
     async function onSubmit(formData, event) {
         const sendData = omit(
@@ -196,7 +207,7 @@ export const Form = () => {
                 ? videoHttp.create(sendData)
                 : videoHttp.update(video.id, sendData)
             const {data} = await http
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Vídeo salva com sucesso", 
                 {variant: 'success'}
             )
@@ -216,23 +227,12 @@ export const Form = () => {
             
         } catch (error) {
             console.error(error)
-            snackBar.enqueueSnackbar(
+            enqueueSnackbar(
                 "Erro ao salvar vídeo",
                 { variant: "error"}
             )
         } 
     } 
-
-    function resetForm(data) {
-        Object.keys(uploadsRef.current).forEach(
-            field => uploadsRef.current[field] && uploadsRef.current[field].current.clear()
-        )
-
-        castMemberRef.current && castMemberRef.current.clear()
-        genderRef.current && genderRef.current.clear()
-        categoryRef.current && categoryRef.current.clear()
-        reset(data)
-    }
 
     function uploadFiles(video){
         const files: FileInfo[] = fileFields
@@ -245,7 +245,7 @@ export const Form = () => {
 
         dispatch(Creators.addUpload({video, files}))
 
-        snackBar.enqueueSnackbar( '', {
+        enqueueSnackbar( '', {
             key: 'snackbar-upload',
             persist: true,
             anchorOrigin: {

@@ -16,7 +16,7 @@ const App: React.FC = () => {
         <MuiThemeProvider theme={theme}>
           <SnackbarProvider>
             <CssBaseline/>
-            <BrowserRouter>
+            <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
               <Spinner/>
               <Navbar/>
               <Box paddingTop={'70px'}>
