@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
+use App\Models\CastMember;
 use App\Models\Video;
 use App\Models\Category;
 use App\Models\Gender;
@@ -25,6 +26,7 @@ abstract class BaseVideoControllerTestCase extends TestCase
             'video_file' => 'video.mp4',
             'trailer_file' => 'trailer.mp4',
         ]);
+        $castMember = \factory(CastMember::class)->create();
         $category = \factory(Category::class)->create();
         $gender = \factory(Gender::class)->create();
         $gender->categories()->sync($category->id);
@@ -34,6 +36,7 @@ abstract class BaseVideoControllerTestCase extends TestCase
                     'year_launched' => 2010,
                     'rating' => Video::RATING_LIST[0],
                     'duration' => 120,
+                    'cast_members_id' => [$castMember->id],
                     'categories_id' => [$category->id],
                     'genders_id' => [$gender->id]
                 ];
