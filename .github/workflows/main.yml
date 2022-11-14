@@ -51,5 +51,8 @@ jobs:
       - name: "Clear config-cache backend"
         run: docker exec -t micro-videos-app php /var/www/backend/artisan config:clear
 
+      - name: "Copiando .env.dusk.testing"
+        run: docker exec -t micro-videos-app cp /var/www/backend/.env.dusk.testing.example /var/www/backend/.env.dusk.testing
+
       - name: "Executando testes frontend"
         run: docker exec -t micro-videos-app php /var/www/backend/artisan dusk --env=testing
