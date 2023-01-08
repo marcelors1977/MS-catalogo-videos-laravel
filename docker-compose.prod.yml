@@ -12,6 +12,7 @@ services:
         depends_on:
             - db
             - redis
+            - rabbit
 
     nginx:
         build: .docker/nginx
@@ -52,6 +53,7 @@ services:
 
     rabbit:
         image: "rabbitmq:3-management"
+        container_name: micro-videos-rabbit
         hostname: rabbitmq
         environment:
             RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
@@ -59,12 +61,12 @@ services:
             RABBITMQ_DEFAULT_PASS: "rabbitmq"
             RABBITMQ_DEFAULT_VHOST: "/"
         volumes:
-        - .rabbitmqdata:/var/lib/rabbitmq/mnesia
+            - .rabbitmqdata:/var/lib/rabbitmq/mnesia
         ports:
-        - "15672:15672"
-        - "5672:5672"
+            - "15672:15672"
+            - "5672:5672"
         networks:
-        - app-network
+            - app-network
 
 networks:
     app-network:
