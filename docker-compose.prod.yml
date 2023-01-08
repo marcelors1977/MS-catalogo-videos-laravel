@@ -60,8 +60,6 @@ services:
             RABBITMQ_DEFAULT_USER: "rabbitmq"
             RABBITMQ_DEFAULT_PASS: "rabbitmq"
             RABBITMQ_DEFAULT_VHOST: "/"
-        volumes:
-            - .rabbitmqdata:/var/lib/rabbitmq/mnesia
         ports:
             - "15672:15672"
             - "5672:5672"

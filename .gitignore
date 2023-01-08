@@ -4,3 +4,4 @@
 .npm-cache/
 git_login.sh
 backend/.env.dusk.testing
+.rabbitmqdata
