@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: "Iniciando os containeres"
-        run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx
+        run: docker-compose -f docker-compose.prod.yml up -d app db redis nginx rabbit
 
       - name: "Aguardando DB"
         run: docker exec -t micro-videos-app wait-for db:3306 -t 120 --

@@ -12,6 +12,7 @@ services:
         depends_on:
             - db
             - redis
+            - rabbit
 
     nginx:
         build: .docker/nginx
@@ -47,6 +48,21 @@ services:
         container_name: micro-videos-redis
         expose:
             - 6379
+        networks:
+            - app-network
+
+    rabbit:
+        image: "rabbitmq:3-management"
+        container_name: micro-videos-rabbit
+        hostname: rabbitmq
+        environment:
+            RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+            RABBITMQ_DEFAULT_USER: "rabbitmq"
+            RABBITMQ_DEFAULT_PASS: "rabbitmq"
+            RABBITMQ_DEFAULT_VHOST: "/"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
         networks:
             - app-network
 

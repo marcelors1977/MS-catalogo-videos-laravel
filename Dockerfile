@@ -11,7 +11,7 @@ RUN apk add --no-cache shadow \
     git \
     libzip-dev \
     chromium-chromedriver
-RUN docker-php-ext-install pdo pdo_mysql zip
+RUN docker-php-ext-install pdo pdo_mysql zip bcmath sockets
 
 RUN wget -q -O /usr/bin/wait-for https://raw.githubusercontent.com/eficode/wait-for/v2.2.3/wait-for && \
     chmod +x /usr/bin/wait-for
