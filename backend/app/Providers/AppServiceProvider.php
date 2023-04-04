@@ -2,12 +2,6 @@
 
 namespace App\Providers;
 
-use App\Models\CastMember;
-use App\Models\Category;
-use App\Models\Gender;
-use App\Observers\CastMemberObserver;
-use App\Observers\CategoryObserver;
-use App\Observers\GenderObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,8 +25,5 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         \View::addExtension('html','blade');
-        Category::observe(CategoryObserver::class);
-        CastMember::observe(CastMemberObserver::class);
-        Gender::observe(GenderObserver::class);
     }
 }

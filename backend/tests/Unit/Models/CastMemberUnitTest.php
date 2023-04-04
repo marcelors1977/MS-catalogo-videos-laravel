@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\CastMember;
 use PHPUnit\Framework\TestCase;
 use App\Models\Traits\Uuid;
+use App\Models\Traits\SerializeDateToIso8601;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use EloquentFilter\Filterable;
 
@@ -26,7 +27,7 @@ class CastMemberUnitTest extends TestCase
     
     public function testIfUseTraits()
     {
-        $traits = [ SoftDeletes::class, Uuid::class, Filterable::class ];
+        $traits = [ SoftDeletes::class, Uuid::class, Filterable::class, SerializeDateToIso8601::class ];
         $castMemberTraits = array_keys(class_uses(CastMember::class));
         $this->assertEquals($traits, $castMemberTraits);
     }

@@ -214,7 +214,7 @@ export const Form = () => {
             
             uploadFiles(data.data)
             id && resetForm(video)
-
+  
             setTimeout( () => {
                 event 
                 ? (
@@ -224,6 +224,7 @@ export const Form = () => {
                     )
                 : navigate('/videos')
             })
+
             
         } catch (error) {
             console.error(error)

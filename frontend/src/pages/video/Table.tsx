@@ -137,9 +137,9 @@ const Table = (props: Props) => {
                 if (subscribed.current) {
                     setData(data.data)  
                     setTotalRecords(data.meta.total)
-                    if(openDeleteDialog) {
-                        setOpenDeleteDialog(false)
-                    }
+                    // if(openDeleteDialog) {
+                    //     setOpenDeleteDialog(false)
+                    // }
                 }            
             } catch (error) {
                 console.error(error)
@@ -151,7 +151,7 @@ const Table = (props: Props) => {
                     {variant: 'error'}
                 )
             } 
-        },[setTotalRecords, enqueueSnackbar, openDeleteDialog, setOpenDeleteDialog])
+        },[setTotalRecords, enqueueSnackbar])
 
         React.useEffect ( () => {
             subscribed.current = true
@@ -190,6 +190,9 @@ const Table = (props: Props) => {
                     'Registros excluídos com sucesso',
                     {variant: 'success'}
                 )
+                if(openDeleteDialog) {
+                    setOpenDeleteDialog(false)
+                }
                 if(
                     rowsToDelete.data.length === filterState.pagination.per_page
                     && filterState.pagination.page > 1

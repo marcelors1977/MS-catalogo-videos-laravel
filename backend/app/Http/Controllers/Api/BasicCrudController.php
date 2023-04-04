@@ -104,7 +104,9 @@ abstract class BasicCrudController extends Controller
     public function destroyCollection(Request $request)
     {
         $data = $this->validateIds($request);
-        $this->model()::whereIn('id', $data['ids'])->delete();
+        // $obj = $this->model()::whereIn('id', $data['ids'])->delete();
+        $collection = $this->model()::whereIn('id', $data['ids'])->get();
+        $collection->each->delete();
         
         return response()->noContent();
     }

@@ -16,6 +16,8 @@ import  { Creators } from '../../store/filter'
 import { FilterResetButton } from '../../components/Table/FilterResetButton'
 import categoryHttp from '../../util/http/category-http'
 import LoadingContext from '../../components/loading/LoadingContext'
+import useDeleteCollection from '../../hooks/useDeleteCollections'
+import DeleteDialog from '../../components/DeleteDialog'
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -109,6 +111,7 @@ const Table = (props: Props) => {
     const [data, setData] = React.useState<Gender[]>([])
     const [, setCategories] = React.useState<Category[]>()
     const loading = React.useContext(LoadingContext)
+    const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection()
     const extraFilter = React.useMemo(() => ({
         createValidationSchema: () => {
             return yup.object().shape( {
@@ -192,7 +195,7 @@ const Table = (props: Props) => {
                     dir,
                     ...(
                         categories  &&
-                        {categories: categories.join(',') }
+                        {categories: categories}
                     )
                 }
             })
@@ -239,8 +242,53 @@ const Table = (props: Props) => {
         debounceFilterState.extraFilter
     ])
 
+    function deleteRows( confirmed: boolean) {
+        if (!confirmed) {
+            setOpenDeleteDialog(false)
+            return
+        }
+        const ids = rowsToDelete
+            .data
+            .map(value => data[value.index].id)
+            .join(',')
+            genderHttp
+            .deleteCollection({ids})
+            .then( response => {
+                enqueueSnackbar(
+                    'Registros excluídos com sucesso',
+                    {variant: 'success'}
+                )
+                if(openDeleteDialog) {
+                    setOpenDeleteDialog(false)
+                }
+                if(
+                    rowsToDelete.data.length === filterState.pagination.per_page
+                    && filterState.pagination.page > 1
+                ) {
+                    const page = filterState.pagination.page -2
+                    filterManager.changePage(page)
+                } else {
+                    getData({
+                        search: cleanFunSearch,
+                        page: debounceFilterState.pagination.page,
+                        per_page: debounceFilterState.pagination.per_page,
+                        sort: debounceFilterState.order.sort,
+                        dir: debounceFilterState.order.dir
+                    })
+                }
+            })
+            .catch( (error) => {
+                console.log(error)
+                enqueueSnackbar(
+                    'Não foi possível excluir os registros',
+                    {variant: 'error'}
+                )
+            })
+    }
+
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
+            <DeleteDialog open={openDeleteDialog} handleClose={deleteRows}/>
             <DefaultTable 
                 title="Listagem de gêneros"
                 columns={columns}
@@ -275,7 +323,11 @@ const Table = (props: Props) => {
                     onChangePage: (page) => filterManager.changePage(page),
                     onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
                     onColumnSortChange: (changeColumn: string, direction: string) => 
-                        filterManager.changeColumnSort(changeColumn, direction)
+                        filterManager.changeColumnSort(changeColumn, direction),
+                    onRowsDelete: (rowsDeleted) => {
+                        setRowsToDelete(rowsDeleted as any)
+                        return false
+                    }
                 }}
             />
         </MuiThemeProvider>

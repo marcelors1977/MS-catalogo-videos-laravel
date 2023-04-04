@@ -35,9 +35,9 @@ const makeDefaultOptions = (debouncedSearchTime) : MUIDataTableOptions => ({
             titleAria: "Ver/Esconder Colunas de Tabela"
         },
         selectedRows: {
-            text: "regsitro(s) selecionado(s)",
+            text: "registro(s) selecionado(s)",
             delete: "Excluir",
-            deleteAria: "Excluir regsitro(s) selecionado(s)"
+            deleteAria: "Excluir registro(s) selecionado(s)"
         }
     },
     customSearchRender: ( 
