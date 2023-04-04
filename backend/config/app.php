@@ -55,6 +55,8 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL', null),
+    
+    'sync_rabbitmq_enable' => env('SYNC_RABBITMQ_ENABLE',false),
 
     /*
     |--------------------------------------------------------------------------
@@ -174,7 +176,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
+        App\Providers\SyncServiceProvider::class
     ],
 
     /*

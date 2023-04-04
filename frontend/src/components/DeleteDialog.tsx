@@ -14,7 +14,6 @@ interface DeleteDialogProps {
 }
 const DeleteDialog: React.FC<DeleteDialogProps> = (props) => {
     const { open, handleClose} = props
-
     return (
         <Dialog
             open={open}

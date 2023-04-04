@@ -5,8 +5,10 @@ namespace Tests\Unit\Models;
 use App\Models\Gender;
 use PHPUnit\Framework\TestCase;
 use App\Models\Traits\Uuid;
+use App\Models\Traits\SerializeDateToIso8601;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use EloquentFilter\Filterable;
+use Chelout\RelationshipEvents\Concerns\HasBelongsToManyEvents;
 
 class GenderUnitTest extends TestCase
 {
@@ -26,7 +28,7 @@ class GenderUnitTest extends TestCase
     
     public function testIfUseTraits()
     {
-        $traits = [ SoftDeletes::class, Uuid::class, Filterable::class ];
+        $traits = [ SoftDeletes::class, Uuid::class, Filterable::class, SerializeDateToIso8601::class, HasBelongsToManyEvents::class ];
         $genderTraits = array_keys(class_uses(Gender::class));
         $this->assertEquals($traits, $genderTraits);
     }
