@@ -1,9 +1,10 @@
 
 import * as React from 'react';
-import { IconButton, Menu as MuiMenu, MenuItem } from '@material-ui/core'
+import { IconButton, Menu as MuiMenu, MenuItem, Divider } from '@material-ui/core'
 import MenuIcon from '@material-ui/icons/Menu'
 import routes, { MyRouteProps } from '../../routes';
 import { Link } from 'react-router-dom';
+import {useHasRealmRole} from '../../hooks/useHasRole';
 
 const listRoutes = [
     'dashboard',
@@ -20,6 +21,11 @@ export const Menu = () => {
     const handleOpen = (event: any) => setAnchorEl(event.currentTarget)
     const handleClose = () => setAnchorEl(null)
     const open = Boolean(anchorEl)
+    const hasCatalogAdmin = useHasRealmRole('catalog-admin')
+
+    if (!hasCatalogAdmin) {
+        return null
+    }
 
     return (
         <React.Fragment>
@@ -55,6 +61,16 @@ export const Menu = () => {
                         }
                     )
                 }
+                <Divider/>
+                <MenuItem
+                    href=''
+                    rel='noopener'
+                    target='_blank'
+                    color='textPrimary'
+                    onClick={handleClose}
+                >
+                    Usuários
+                </MenuItem>
             </MuiMenu>
         </React.Fragment>
     );

@@ -10,96 +10,119 @@ import GendeForm from "../pages/gender/PageForm"
 import VideoList from "../pages/video/PageList"
 import VideoForm from "../pages/video/PageForm"
 import UploadPage from "../pages/uploads"
+import Login from "../pages/video/Login"
 
 export interface MyRouteProps extends RouteProps{
     name: string
     label: string
+    auth?: boolean
 }
 
 const routes: MyRouteProps[] = [
     {
+        name: 'login',
+        label: 'Login',
+        path: '/login',
+        element: <Login/>,
+        auth: false
+    },
+    {
         name: 'dashboard',
         label: 'Dashboard',
         path: '/',
-        element: <Dashboard/>
+        element: <Dashboard/>,
+        auth: true
     },
     {
         name: 'categories.list',
         label: 'Categorias',
         path: '/categories',
-        element: <CategoryList/>
+        element: <CategoryList/>,
+        auth: true
     },
     {
         name: 'categories.create',
         label: 'Criar categoria',
         path: '/categories/create',
-        element: <CategoryForm/>
+        element: <CategoryForm/>,
+        auth: true
     },
     {
         name: 'categories.edit',
         label: 'Editar Categoria',
         path: '/categories/:id/edit',
-        element: <CategoryForm/>
+        element: <CategoryForm/>,
+        auth: true
     },    
     {
         name: 'cast_member.list',
         label: 'Membros de elenco',
         path: '/cast-members',
-        element: <CastMemberList/>
+        element: <CastMemberList/>,
+        auth: true
     },
     {
         name: 'cast_member.create',
         label: 'Criar Membro de Elenco',
         path: '/cast-members/create',
-        element: <CastMemberForm/>
+        element: <CastMemberForm/>,
+        auth: true
     },
     {
         name: 'cast_member.edit',
         label: 'Editar Membro de Elenco',
         path: '/cast-members/:id/edit',
-        element: <CastMemberForm/>
+        element: <CastMemberForm/>,
+        auth: true
     },
     {
         name: 'genders.list',
         label: 'Gêneros',
         path: '/genders',
-        element: <GenderList/>
+        element: <GenderList/>,
+        auth: true
     },
     {
         name: 'genders.create',
         label: 'Criar Gênero',
         path: '/genders/create',
-        element: <GendeForm/>
+        element: <GendeForm/>,
+        auth: true
     },
     {
         name: 'genders.edit',
         label: 'Editar Gênero',
         path: '/genders/:id/edit',
-        element: <GendeForm/>
+        element: <GendeForm/>,
+        auth: true
     },
     {
         name: 'videos.list',
         label: 'Videos',
         path: '/videos',
-        element: <VideoList/>
+        element: <VideoList/>,
+        auth: true
     },
     {
         name: 'videos.create',
         label: 'Criar Video',
         path: '/videos/create',
-        element: <VideoForm/>
+        element: <VideoForm/>,
+        auth: true
     },
     {
         name: 'videos.edit',
         label: 'Editar Video',
         path: '/videos/:id/edit',
-        element: <VideoForm/>
+        element: <VideoForm/>,
+        auth: true
     },
     {
         name: 'uploads',
         label: 'Uploads',
         path: '/uploads',
-        element: <UploadPage/>
+        element: <UploadPage/>,
+        auth: true
     }
 ]
 

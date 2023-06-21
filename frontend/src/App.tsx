@@ -8,10 +8,17 @@ import theme from './theme'
 import { SnackbarProvider } from './components/SnackbarProvider'
 import Spinner from './components/Spinner'
 import { LoadingProvider } from './components/loading/LoadingProvider'
+import { ReactKeycloakProvider } from '@react-keycloak/web'
+import { keycloak, keycloakConfig } from './util/auth'
 
 const App: React.FC = () => {
+
+  if (window.location.pathname !== process.env.REACT_APP_BASENAME) {
+    window.location.assign(process.env.REACT_APP_BASENAME || '/')  
+  } 
+
   return (
-    <React.Fragment>
+    <ReactKeycloakProvider authClient={keycloak} initOptions={keycloakConfig}>
       <LoadingProvider>
         <MuiThemeProvider theme={theme}>
           <SnackbarProvider>
@@ -27,7 +34,7 @@ const App: React.FC = () => {
           </SnackbarProvider>
         </MuiThemeProvider>
       </LoadingProvider>
-    </React.Fragment>
+    </ReactKeycloakProvider>
   )
 }
 

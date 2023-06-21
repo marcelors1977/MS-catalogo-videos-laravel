@@ -16,7 +16,6 @@ import { FilterResetButton } from '../../components/Table/FilterResetButton'
 import { invert } from 'lodash'
 import LoadingContext from '../../components/loading/LoadingContext'
 import useDeleteCollection from '../../hooks/useDeleteCollections'
-import { Delete } from '@mui/icons-material'
 import DeleteDialog from '../../components/DeleteDialog'
 
 const castMemberNames = Object.values(CastMemberTypeMap)

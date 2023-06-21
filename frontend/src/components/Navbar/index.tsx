@@ -1,8 +1,10 @@
 // @flow 
-import { AppBar, Toolbar, Button, Theme, Typography, makeStyles } from '@material-ui/core'
+import { AppBar, Toolbar, Theme, Typography, makeStyles } from '@material-ui/core'
 import * as React from 'react'
 import logo from "../../static/logo.png"
 import { Menu } from './Menu';
+import LoginButton from './LoginButton';
+import UserAccountMenu from './UserAccountMenu';
 
 //xs, sm, md, lg e xl
 const useStyles = makeStyles( (theme: Theme) => ({
@@ -30,7 +32,8 @@ export const Navbar: React.FC = () => {
                 <Typography className={classes.title}>
                     <img src={logo} alt="Codeflix" className={classes.logo}/>
                 </Typography>
-                <Button color="inherit">Login</Button>
+                <LoginButton/>
+                <UserAccountMenu/>
             </Toolbar>
         </AppBar>
     );
